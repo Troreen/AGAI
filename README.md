@@ -13,7 +13,7 @@ See [Steering system documentation](Source/Game/STEERING.md) for the current con
 
 ## Running the project
 
-1. Open `Game.sln` in Visual Studio 2022.
+1. Open `Game.sln` in Visual Studio 2025.
 2. Select the `Debug | x64` configuration.
 3. Build and run the game project.
 
