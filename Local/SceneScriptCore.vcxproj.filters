@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="tge">
+      <UniqueIdentifier>{05AE880B-71B7-887C-FA32-9F7C663B947C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\animation">
+      <UniqueIdentifier>{5491ECB0-C051-68E7-898C-B164F50BADC3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\animation\Script">
+      <UniqueIdentifier>{186966A9-04F8-EF72-AD16-046E99840019}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\scene">
+      <UniqueIdentifier>{02DBB19D-6E45-6614-B783-17BA232D4469}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\script">
+      <UniqueIdentifier>{C948F453-B500-36A1-1E08-0FFD0ADFD091}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\script\Contexts">
+      <UniqueIdentifier>{700829CD-DC69-06DB-65D7-4C8DD1373D9A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\script\Nodes">
+      <UniqueIdentifier>{517DE8BF-3D76-0712-66A8-EC965200E71D}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Source\SceneScriptCore\stdafx.h" />
+    <ClInclude Include="..\Source\SceneScriptCore\tge\animation\Script\AdjustAnimationSpeedNode.h">
+      <Filter>tge\animation\Script</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\SceneScriptCore\tge\animation\Script\AnimationNodes.h">
+      <Filter>tge\animation\Script</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\SceneScriptCore\tge\animation\Script\BlendAnimationNode.h">
+      <Filter>tge\animation\Script</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\SceneScriptCore\tge\animation\Script\EvaluatePoseNode.h">
+      <Filter>tge\animation\Script</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\SceneScriptCore\tge\animation\Script\PlayClipNode.h">
+      <Filter>tge\animation\Script</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\SceneScriptCore\tge\scene\Scene.h">
+      <Filter>tge\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\SceneScriptCore\tge\scene\SceneObject.h">
+      <Filter>tge\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\SceneScriptCore\tge\scene\SceneObjectDefinition.h">
+      <Filter>tge\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\SceneScriptCore\tge\scene\SceneObjectDefinitionManager.h">
+      <Filter>tge\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\SceneScriptCore\tge\scene\ScenePropertyTypes.h">
+      <Filter>tge\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\SceneScriptCore\tge\scene\SceneSerialize.h">
+      <Filter>tge\scene</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\SceneScriptCore\tge\script\BaseProperties.h">
+      <Filter>tge\script</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\SceneScriptCore\tge\script\Contexts\ScriptCreationContext.h">
+      <Filter>tge\script\Contexts</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\SceneScriptCore\tge\script\Contexts\ScriptExecutionContext.h">
+      <Filter>tge\script\Contexts</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\SceneScriptCore\tge\script\Contexts\ScriptUpdateContext.h">
+      <Filter>tge\script\Contexts</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\SceneScriptCore\tge\script\JsonData.h">
+      <Filter>tge\script</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\SceneScriptCore\tge\script\Nodes\CommonMathNodes.h">
+      <Filter>tge\script\Nodes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\SceneScriptCore\tge\script\Nodes\CommonNodes.h">
+      <Filter>tge\script\Nodes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\SceneScriptCore\tge\script\Nodes\ExampleNodes.h">
+      <Filter>tge\script\Nodes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\SceneScriptCore\tge\script\Nodes\SceneObjectNodes.h">
+      <Filter>tge\script\Nodes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\SceneScriptCore\tge\script\Property.h">
+      <Filter>tge\script</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\SceneScriptCore\tge\script\Script.h">
+      <Filter>tge\script</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\SceneScriptCore\tge\script\ScriptCommon.h">
+      <Filter>tge\script</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\SceneScriptCore\tge\script\ScriptManager.h">
+      <Filter>tge\script</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\SceneScriptCore\tge\script\ScriptNodeBase.h">
+      <Filter>tge\script</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\SceneScriptCore\tge\script\ScriptNodeTypeRegistry.h">
+      <Filter>tge\script</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\SceneScriptCore\tge\script\ScriptRuntimeInstance.h">
+      <Filter>tge\script</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Source\SceneScriptCore\stdafx.cpp" />
+    <ClCompile Include="..\Source\SceneScriptCore\tge\animation\Script\AdjustAnimationSpeedNode.cpp">
+      <Filter>tge\animation\Script</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\SceneScriptCore\tge\animation\Script\AnimationNodes.cpp">
+      <Filter>tge\animation\Script</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\SceneScriptCore\tge\animation\Script\BlendAnimationNode.cpp">
+      <Filter>tge\animation\Script</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\SceneScriptCore\tge\animation\Script\EvaluatePoseNode.cpp">
+      <Filter>tge\animation\Script</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\SceneScriptCore\tge\animation\Script\PlayClipNode.cpp">
+      <Filter>tge\animation\Script</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\SceneScriptCore\tge\scene\Scene.cpp">
+      <Filter>tge\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\SceneScriptCore\tge\scene\SceneObject.cpp">
+      <Filter>tge\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\SceneScriptCore\tge\scene\SceneObjectDefinition.cpp">
+      <Filter>tge\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\SceneScriptCore\tge\scene\SceneObjectDefinitionManager.cpp">
+      <Filter>tge\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\SceneScriptCore\tge\scene\ScenePropertyTypes.cpp">
+      <Filter>tge\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\SceneScriptCore\tge\scene\SceneSerialize.cpp">
+      <Filter>tge\scene</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\SceneScriptCore\tge\script\BaseProperties.cpp">
+      <Filter>tge\script</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\SceneScriptCore\tge\script\Contexts\ScriptCreationContext.cpp">
+      <Filter>tge\script\Contexts</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\SceneScriptCore\tge\script\Contexts\ScriptExecutionContext.cpp">
+      <Filter>tge\script\Contexts</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\SceneScriptCore\tge\script\Nodes\CommonMathNodes.cpp">
+      <Filter>tge\script\Nodes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\SceneScriptCore\tge\script\Nodes\CommonNodes.cpp">
+      <Filter>tge\script\Nodes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\SceneScriptCore\tge\script\Nodes\ExampleNodes.cpp">
+      <Filter>tge\script\Nodes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\SceneScriptCore\tge\script\Nodes\SceneObjectNodes.cpp">
+      <Filter>tge\script\Nodes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\SceneScriptCore\tge\script\Property.cpp">
+      <Filter>tge\script</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\SceneScriptCore\tge\script\Script.cpp">
+      <Filter>tge\script</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\SceneScriptCore\tge\script\ScriptManager.cpp">
+      <Filter>tge\script</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\SceneScriptCore\tge\script\ScriptNodeTypeRegistry.cpp">
+      <Filter>tge\script</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\SceneScriptCore\tge\script\ScriptRuntimeInstance.cpp">
+      <Filter>tge\script</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

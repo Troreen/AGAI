@@ -1,0 +1,230 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Retail|x64">
+      <Configuration>Retail</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{7171E49A-DDFC-515F-E60D-D5535218AE5F}</ProjectGuid>
+    <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>SceneScriptCore</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v145</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Retail|x64'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Retail|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>..\Bin\</OutDir>
+    <IntDir>..\Temp\SceneScriptCore\Debug\</IntDir>
+    <TargetName>SceneScriptCore_Debug</TargetName>
+    <TargetExt>.lib</TargetExt>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>..\Bin\</OutDir>
+    <IntDir>..\Temp\SceneScriptCore\Release\</IntDir>
+    <TargetName>SceneScriptCore_Release</TargetName>
+    <TargetExt>.lib</TargetExt>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Retail|x64'">
+    <OutDir>..\Bin\</OutDir>
+    <IntDir>..\Temp\SceneScriptCore\Retail\</IntDir>
+    <TargetName>SceneScriptCore_Retail</TargetName>
+    <TargetExt>.lib</TargetExt>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+      <WarningLevel>Level4</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <PreprocessorDefinitions>TGE_PROJECT_SETTINGS_FILE="SceneScriptCore.json";_DEBUG;WIN32;_LIB;TGE_SYSTEM_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\Source\SceneScriptCore;..\Source\External;..\Source\Core;..\Source\SceneScriptCore\tools;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
+      <MinimalRebuild>false</MinimalRebuild>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <SDLCheck>true</SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions>/Gm- /Gy /Gw %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <ExternalWarningLevel>Level3</ExternalWarningLevel>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+    <Lib>
+      <AdditionalLibraryDirectories>..\Lib;..\Dependencies;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+      <WarningLevel>Level4</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <PreprocessorDefinitions>TGE_PROJECT_SETTINGS_FILE="SceneScriptCore.json";_RELEASE;WIN32;_LIB;TGE_SYSTEM_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\Source\SceneScriptCore;..\Source\External;..\Source\Core;..\Source\SceneScriptCore\tools;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <MinimalRebuild>false</MinimalRebuild>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <SDLCheck>true</SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions>/Gm- /Gy /Gw %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <ExternalWarningLevel>Level3</ExternalWarningLevel>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Lib>
+      <AdditionalLibraryDirectories>..\Lib;..\Dependencies;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Retail|x64'">
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+      <WarningLevel>Level4</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <PreprocessorDefinitions>TGE_PROJECT_SETTINGS_FILE="SceneScriptCore.json";_RETAIL;WIN32;_LIB;TGE_SYSTEM_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\Source\SceneScriptCore;..\Source\External;..\Source\Core;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Full</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <MinimalRebuild>false</MinimalRebuild>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <SDLCheck>true</SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <ExternalWarningLevel>Level3</ExternalWarningLevel>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Lib>
+      <AdditionalLibraryDirectories>..\Lib;..\Dependencies;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Lib>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Source\SceneScriptCore\stdafx.h" />
+    <ClInclude Include="..\Source\SceneScriptCore\tge\animation\Script\AdjustAnimationSpeedNode.h" />
+    <ClInclude Include="..\Source\SceneScriptCore\tge\animation\Script\AnimationNodes.h" />
+    <ClInclude Include="..\Source\SceneScriptCore\tge\animation\Script\BlendAnimationNode.h" />
+    <ClInclude Include="..\Source\SceneScriptCore\tge\animation\Script\EvaluatePoseNode.h" />
+    <ClInclude Include="..\Source\SceneScriptCore\tge\animation\Script\PlayClipNode.h" />
+    <ClInclude Include="..\Source\SceneScriptCore\tge\scene\Scene.h" />
+    <ClInclude Include="..\Source\SceneScriptCore\tge\scene\SceneObject.h" />
+    <ClInclude Include="..\Source\SceneScriptCore\tge\scene\SceneObjectDefinition.h" />
+    <ClInclude Include="..\Source\SceneScriptCore\tge\scene\SceneObjectDefinitionManager.h" />
+    <ClInclude Include="..\Source\SceneScriptCore\tge\scene\ScenePropertyTypes.h" />
+    <ClInclude Include="..\Source\SceneScriptCore\tge\scene\SceneSerialize.h" />
+    <ClInclude Include="..\Source\SceneScriptCore\tge\script\BaseProperties.h" />
+    <ClInclude Include="..\Source\SceneScriptCore\tge\script\Contexts\ScriptCreationContext.h" />
+    <ClInclude Include="..\Source\SceneScriptCore\tge\script\Contexts\ScriptExecutionContext.h" />
+    <ClInclude Include="..\Source\SceneScriptCore\tge\script\Contexts\ScriptUpdateContext.h" />
+    <ClInclude Include="..\Source\SceneScriptCore\tge\script\JsonData.h" />
+    <ClInclude Include="..\Source\SceneScriptCore\tge\script\Nodes\CommonMathNodes.h" />
+    <ClInclude Include="..\Source\SceneScriptCore\tge\script\Nodes\CommonNodes.h" />
+    <ClInclude Include="..\Source\SceneScriptCore\tge\script\Nodes\ExampleNodes.h" />
+    <ClInclude Include="..\Source\SceneScriptCore\tge\script\Nodes\SceneObjectNodes.h" />
+    <ClInclude Include="..\Source\SceneScriptCore\tge\script\Property.h" />
+    <ClInclude Include="..\Source\SceneScriptCore\tge\script\Script.h" />
+    <ClInclude Include="..\Source\SceneScriptCore\tge\script\ScriptCommon.h" />
+    <ClInclude Include="..\Source\SceneScriptCore\tge\script\ScriptManager.h" />
+    <ClInclude Include="..\Source\SceneScriptCore\tge\script\ScriptNodeBase.h" />
+    <ClInclude Include="..\Source\SceneScriptCore\tge\script\ScriptNodeTypeRegistry.h" />
+    <ClInclude Include="..\Source\SceneScriptCore\tge\script\ScriptRuntimeInstance.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Source\SceneScriptCore\stdafx.cpp">
+      <PrecompiledHeader>Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\Source\SceneScriptCore\tge\animation\Script\AdjustAnimationSpeedNode.cpp" />
+    <ClCompile Include="..\Source\SceneScriptCore\tge\animation\Script\AnimationNodes.cpp" />
+    <ClCompile Include="..\Source\SceneScriptCore\tge\animation\Script\BlendAnimationNode.cpp" />
+    <ClCompile Include="..\Source\SceneScriptCore\tge\animation\Script\EvaluatePoseNode.cpp" />
+    <ClCompile Include="..\Source\SceneScriptCore\tge\animation\Script\PlayClipNode.cpp" />
+    <ClCompile Include="..\Source\SceneScriptCore\tge\scene\Scene.cpp" />
+    <ClCompile Include="..\Source\SceneScriptCore\tge\scene\SceneObject.cpp" />
+    <ClCompile Include="..\Source\SceneScriptCore\tge\scene\SceneObjectDefinition.cpp" />
+    <ClCompile Include="..\Source\SceneScriptCore\tge\scene\SceneObjectDefinitionManager.cpp" />
+    <ClCompile Include="..\Source\SceneScriptCore\tge\scene\ScenePropertyTypes.cpp" />
+    <ClCompile Include="..\Source\SceneScriptCore\tge\scene\SceneSerialize.cpp" />
+    <ClCompile Include="..\Source\SceneScriptCore\tge\script\BaseProperties.cpp" />
+    <ClCompile Include="..\Source\SceneScriptCore\tge\script\Contexts\ScriptCreationContext.cpp" />
+    <ClCompile Include="..\Source\SceneScriptCore\tge\script\Contexts\ScriptExecutionContext.cpp" />
+    <ClCompile Include="..\Source\SceneScriptCore\tge\script\Nodes\CommonMathNodes.cpp" />
+    <ClCompile Include="..\Source\SceneScriptCore\tge\script\Nodes\CommonNodes.cpp" />
+    <ClCompile Include="..\Source\SceneScriptCore\tge\script\Nodes\ExampleNodes.cpp" />
+    <ClCompile Include="..\Source\SceneScriptCore\tge\script\Nodes\SceneObjectNodes.cpp" />
+    <ClCompile Include="..\Source\SceneScriptCore\tge\script\Property.cpp" />
+    <ClCompile Include="..\Source\SceneScriptCore\tge\script\Script.cpp" />
+    <ClCompile Include="..\Source\SceneScriptCore\tge\script\ScriptManager.cpp" />
+    <ClCompile Include="..\Source\SceneScriptCore\tge\script\ScriptNodeTypeRegistry.cpp" />
+    <ClCompile Include="..\Source\SceneScriptCore\tge\script\ScriptRuntimeInstance.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="External.vcxproj">
+      <Project>{089DB854-F469-1360-1D83-010809AF48EE}</Project>
+    </ProjectReference>
+    <ProjectReference Include="Core.vcxproj">
+      <Project>{2EB4837C-1AEB-840D-C3D7-6A10AFED000F}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

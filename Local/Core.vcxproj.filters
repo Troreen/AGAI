@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="tge">
+      <UniqueIdentifier>{05AE880B-71B7-887C-FA32-9F7C663B947C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\animation">
+      <UniqueIdentifier>{5491ECB0-C051-68E7-898C-B164F50BADC3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\debugging">
+      <UniqueIdentifier>{207648B8-8C36-C4EE-5571-0D6CC1F008CB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\editor">
+      <UniqueIdentifier>{BB675933-A71F-9B80-1027-74DCFCFD3571}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\editor\CommandManager">
+      <UniqueIdentifier>{845639C2-F018-6D4C-39C9-FBD8A5CA452A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\graphics">
+      <UniqueIdentifier>{05A88F6A-F10A-1F0F-9A90-57C586D2EA91}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\imgui">
+      <UniqueIdentifier>{2F6B029D-9BD5-B613-E413-68B950BD9468}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\loaders">
+      <UniqueIdentifier>{1E136DD2-8AC8-E5C7-13BD-DF9E7F71DCCB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\log">
+      <UniqueIdentifier>{76C8A5DC-E2A7-2478-EBBF-AF4E571E8BD9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\math">
+      <UniqueIdentifier>{1E2A5F71-0AF7-B97C-3310-A8241F3CEF0A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\noise">
+      <UniqueIdentifier>{B2065E9D-1E71-1214-67AF-C3B9D358F068}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\script">
+      <UniqueIdentifier>{C948F453-B500-36A1-1E08-0FFD0ADFD091}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\settings">
+      <UniqueIdentifier>{E5948BC1-D1F7-1A66-7A7D-531C66BFE6E8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\stringRegistry">
+      <UniqueIdentifier>{245E1AD4-1042-DB29-79A2-D57C65A5C5AB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\util">
+      <UniqueIdentifier>{92DC6371-7EA9-BE7C-A7C2-AC2493EEF30A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\uuid">
+      <UniqueIdentifier>{CBE06371-B7AD-BE7C-E0C6-AC24CCF2F30A}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Source\Core\stdafx.h" />
+    <ClInclude Include="..\Source\Core\tge\EngineDefines.h">
+      <Filter>tge</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Core\tge\EngineMacros.h">
+      <Filter>tge</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Core\tge\animation\Animation.h">
+      <Filter>tge\animation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Core\tge\animation\AnimationClip.h">
+      <Filter>tge\animation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Core\tge\animation\AnimationPlayer.h">
+      <Filter>tge\animation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Core\tge\animation\Pose.h">
+      <Filter>tge\animation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Core\tge\animation\PoseGenerator.h">
+      <Filter>tge\animation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Core\tge\animation\Skeleton.h">
+      <Filter>tge\animation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Core\tge\debugging\MemoryTracker.h">
+      <Filter>tge\debugging</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Core\tge\debugging\StackTrace.h">
+      <Filter>tge\debugging</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Core\tge\editor\CommandManager\AbstractCommand.h">
+      <Filter>tge\editor\CommandManager</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Core\tge\editor\CommandManager\CommandManager.h">
+      <Filter>tge\editor\CommandManager</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Core\tge\graphics\Camera.h">
+      <Filter>tge\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Core\tge\imgui\ImGuiPropertyEditor.h">
+      <Filter>tge\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Core\tge\loaders\tgaloader.h">
+      <Filter>tge\loaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Core\tge\log\Log.h">
+      <Filter>tge\log</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Core\tge\math\BoxSphereBounds.h">
+      <Filter>tge\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Core\tge\math\CommonMath.h">
+      <Filter>tge\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Core\tge\math\FMath.h">
+      <Filter>tge\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Core\tge\math\Matrix.h">
+      <Filter>tge\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Core\tge\math\Matrix2x2.h">
+      <Filter>tge\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Core\tge\math\Matrix3x3.h">
+      <Filter>tge\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Core\tge\math\Matrix4x4.h">
+      <Filter>tge\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Core\tge\math\Quaternion.h">
+      <Filter>tge\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Core\tge\math\ScaleRotationTranslation.h">
+      <Filter>tge\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Core\tge\math\Vector.h">
+      <Filter>tge\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Core\tge\math\Vector3.h">
+      <Filter>tge\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Core\tge\math\color.h">
+      <Filter>tge\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Core\tge\math\vector2.h">
+      <Filter>tge\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Core\tge\math\vector4.h">
+      <Filter>tge\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Core\tge\noise\PerlinNoise.h">
+      <Filter>tge\noise</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Core\tge\script\CopyOnWriteWrapper.h">
+      <Filter>tge\script</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Core\tge\settings\settings.h">
+      <Filter>tge\settings</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Core\tge\stringRegistry\StringRegistry.h">
+      <Filter>tge\stringRegistry</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Core\tge\util\FixedStream.h">
+      <Filter>tge\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Core\tge\util\StringCast.h">
+      <Filter>tge\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Core\tge\uuid\UUIDManager.h">
+      <Filter>tge\uuid</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Source\Core\stdafx.cpp" />
+    <ClCompile Include="..\Source\Core\tge\animation\Animation.cpp">
+      <Filter>tge\animation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Core\tge\animation\AnimationClip.cpp">
+      <Filter>tge\animation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Core\tge\animation\AnimationPlayer.cpp">
+      <Filter>tge\animation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Core\tge\animation\Skeleton.cpp">
+      <Filter>tge\animation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Core\tge\debugging\MemoryTracker.cpp">
+      <Filter>tge\debugging</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Core\tge\debugging\StackTrace.cpp">
+      <Filter>tge\debugging</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Core\tge\editor\CommandManager\CommandManager.cpp">
+      <Filter>tge\editor\CommandManager</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Core\tge\graphics\Camera.cpp">
+      <Filter>tge\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Core\tge\imgui\ImGuiPropertyEditor.cpp">
+      <Filter>tge\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Core\tge\loaders\tgaloader.cpp">
+      <Filter>tge\loaders</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Core\tge\log\Log.cpp">
+      <Filter>tge\log</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Core\tge\math\CommonMath.cpp">
+      <Filter>tge\math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Core\tge\math\FMath.cpp">
+      <Filter>tge\math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Core\tge\noise\PerlinNoise.cpp">
+      <Filter>tge\noise</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Core\tge\settings\settings.cpp">
+      <Filter>tge\settings</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Core\tge\stringRegistry\StringRegistry.cpp">
+      <Filter>tge\stringRegistry</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Core\tge\uuid\UUIDManager.cpp">
+      <Filter>tge\uuid</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

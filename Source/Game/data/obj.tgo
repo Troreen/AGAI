@@ -1,0 +1,42 @@
+{
+  "parent-object-definition": "",
+  "properties": [
+    {
+      "description": "",
+      "group": "",
+      "is-dynamic": false,
+      "is-per-instance": false,
+      "name": "Model",
+      "type": "Model",
+      "value": {
+        "path": "models\\Particle_Chest.fbx",
+        "textures": [
+          [
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "",
+            "",
+            "",
+            ""
+          ],
+          [
+            "",
+            "",
+            "",
+            ""
+          ]
+        ]
+      }
+    }
+  ]
+}

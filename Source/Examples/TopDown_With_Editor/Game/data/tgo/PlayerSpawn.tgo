@@ -1,0 +1,24 @@
+{
+  "parent-object-definition": "",
+  "properties": [
+    {
+      "description": "Player Spawn Point",
+      "group": "",
+      "is-dynamic": false,
+      "is-per-instance": false,
+      "name": "PlayerSpawn",
+      "type": "Model",
+      "value": {
+        "path": "box.fbx",
+        "textures": [
+          [
+            "",
+            "",
+            "",
+            ""
+          ]
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="tge">
+      <UniqueIdentifier>{05AE880B-71B7-887C-FA32-9F7C663B947C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\drawers">
+      <UniqueIdentifier>{2C12A571-98C7-1D67-21BC-173E8D70146B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\graphics">
+      <UniqueIdentifier>{05A88F6A-F10A-1F0F-9A90-57C586D2EA91}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\model">
+      <UniqueIdentifier>{25D74B9D-9141-0014-DA7F-B1B94629DE68}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\primitives">
+      <UniqueIdentifier>{E062B8EF-CC30-ACF5-B5C4-1C1CA131885A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\render">
+      <UniqueIdentifier>{F408C151-E0C0-029F-49C8-DBFA359F9D8F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\shaders">
+      <UniqueIdentifier>{FE9FF0DC-6A55-69D2-F349-63A95FFE5FD6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\sprite">
+      <UniqueIdentifier>{CB87DF54-B73F-21A2-2047-FAFD0C1EBC92}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\text">
+      <UniqueIdentifier>{59126371-45DF-BD7C-6EF8-AB245A24F30A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\texture">
+      <UniqueIdentifier>{85A09424-F155-0D1A-7A4A-07F1E6FE031E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\videoplayer">
+      <UniqueIdentifier>{78EBC8FE-E476-36C3-ED87-B9B7599292C3}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Source\Graphics\stdafx.h" />
+    <ClInclude Include="..\Source\Graphics\tge\drawers\CustomShapeDrawer.h">
+      <Filter>tge\drawers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Graphics\tge\drawers\DebugDrawer.h">
+      <Filter>tge\drawers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Graphics\tge\drawers\DebugPerformanceGraph.h">
+      <Filter>tge\drawers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Graphics\tge\drawers\LineDrawer.h">
+      <Filter>tge\drawers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Graphics\tge\drawers\ModelDrawer.h">
+      <Filter>tge\drawers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Graphics\tge\drawers\SpriteDrawer.h">
+      <Filter>tge\drawers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Graphics\tge\graphics\AmbientLight.h">
+      <Filter>tge\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Graphics\tge\graphics\DirectionalLight.h">
+      <Filter>tge\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Graphics\tge\graphics\FullscreenEffect.h">
+      <Filter>tge\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Graphics\tge\graphics\FullscreenPixelateEffect.h">
+      <Filter>tge\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Graphics\tge\graphics\GraphicsEngine.h">
+      <Filter>tge\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Graphics\tge\graphics\GraphicsStateStack.h">
+      <Filter>tge\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Graphics\tge\graphics\PointLight.h">
+      <Filter>tge\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Graphics\tge\graphics\Vertex.h">
+      <Filter>tge\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Graphics\tge\model\AnimatedModelInstance.h">
+      <Filter>tge\model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Graphics\tge\model\Model.h">
+      <Filter>tge\model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Graphics\tge\model\ModelFactory.h">
+      <Filter>tge\model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Graphics\tge\model\ModelInstance.h">
+      <Filter>tge\model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Graphics\tge\primitives\CustomShape.h">
+      <Filter>tge\primitives</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Graphics\tge\primitives\LinePrimitive.h">
+      <Filter>tge\primitives</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Graphics\tge\render\RenderCommon.h">
+      <Filter>tge\render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Graphics\tge\render\RenderObject.h">
+      <Filter>tge\render</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Graphics\tge\shaders\ModelShader.h">
+      <Filter>tge\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Graphics\tge\shaders\ShaderCommon.h">
+      <Filter>tge\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Graphics\tge\shaders\SpriteShader.h">
+      <Filter>tge\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Graphics\tge\shaders\shader.h">
+      <Filter>tge\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Graphics\tge\sprite\sprite.h">
+      <Filter>tge\sprite</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Graphics\tge\text\TextService.h">
+      <Filter>tge\text</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Graphics\tge\text\fontfile.h">
+      <Filter>tge\text</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Graphics\tge\text\parser.h">
+      <Filter>tge\text</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Graphics\tge\text\text.h">
+      <Filter>tge\text</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Graphics\tge\text\textfile.h">
+      <Filter>tge\text</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Graphics\tge\text\token.h">
+      <Filter>tge\text</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Graphics\tge\texture\TextureManager.h">
+      <Filter>tge\texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Graphics\tge\texture\texture.h">
+      <Filter>tge\texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Graphics\tge\videoplayer\VideoAudio.h">
+      <Filter>tge\videoplayer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Graphics\tge\videoplayer\video.h">
+      <Filter>tge\videoplayer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Graphics\tge\videoplayer\videoplayer.h">
+      <Filter>tge\videoplayer</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Source\Graphics\stdafx.cpp" />
+    <ClCompile Include="..\Source\Graphics\tge\drawers\CustomShapeDrawer.cpp">
+      <Filter>tge\drawers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Graphics\tge\drawers\DebugDrawer.cpp">
+      <Filter>tge\drawers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Graphics\tge\drawers\DebugPerformanceGraph.cpp">
+      <Filter>tge\drawers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Graphics\tge\drawers\LineDrawer.cpp">
+      <Filter>tge\drawers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Graphics\tge\drawers\ModelDrawer.cpp">
+      <Filter>tge\drawers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Graphics\tge\drawers\SpriteDrawer.cpp">
+      <Filter>tge\drawers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Graphics\tge\graphics\AmbientLight.cpp">
+      <Filter>tge\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Graphics\tge\graphics\FullscreenEffect.cpp">
+      <Filter>tge\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Graphics\tge\graphics\FullscreenPixelateEffect.cpp">
+      <Filter>tge\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Graphics\tge\graphics\GraphicsEngine.cpp">
+      <Filter>tge\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Graphics\tge\graphics\GraphicsStateStack.cpp">
+      <Filter>tge\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Graphics\tge\graphics\PointLight.cpp">
+      <Filter>tge\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Graphics\tge\model\AnimatedModelInstance.cpp">
+      <Filter>tge\model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Graphics\tge\model\Model.cpp">
+      <Filter>tge\model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Graphics\tge\model\ModelFactory.cpp">
+      <Filter>tge\model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Graphics\tge\model\ModelInstance.cpp">
+      <Filter>tge\model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Graphics\tge\primitives\CustomShape.cpp">
+      <Filter>tge\primitives</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Graphics\tge\render\RenderObject.cpp">
+      <Filter>tge\render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Graphics\tge\shaders\ModelShader.cpp">
+      <Filter>tge\shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Graphics\tge\shaders\SpriteShader.cpp">
+      <Filter>tge\shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Graphics\tge\shaders\shader.cpp">
+      <Filter>tge\shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Graphics\tge\text\TextService.cpp">
+      <Filter>tge\text</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Graphics\tge\text\fontfile.cpp">
+      <Filter>tge\text</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Graphics\tge\text\parser.cpp">
+      <Filter>tge\text</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Graphics\tge\text\text.cpp">
+      <Filter>tge\text</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Graphics\tge\text\textfile.cpp">
+      <Filter>tge\text</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Graphics\tge\text\token.cpp">
+      <Filter>tge\text</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Graphics\tge\texture\TextureManager.cpp">
+      <Filter>tge\texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Graphics\tge\texture\texture.cpp">
+      <Filter>tge\texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Graphics\tge\videoplayer\VideoAudio.cpp">
+      <Filter>tge\videoplayer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Graphics\tge\videoplayer\video.cpp">
+      <Filter>tge\videoplayer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Graphics\tge\videoplayer\videoplayer.cpp">
+      <Filter>tge\videoplayer</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

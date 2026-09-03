@@ -1,0 +1,66 @@
+include "../../Premake/common.lua"
+
+project "TopDownGame"
+	location (dirs.projectfiles)
+	dependson { "External", "Application", "Editor" }
+		
+	kind "StaticLib"
+	language "C++"
+	cppdialect "C++20"
+
+	debugdir "%{dirs.bin}"
+	targetdir ("%{dirs.bin}")
+	targetname("%{prj.name}_%{cfg.buildcfg}")
+	objdir ("%{dirs.temp}/%{prj.name}/%{cfg.buildcfg}")
+
+	links {"External", "Application", "Core", "Graphics", "SceneScriptCore"}
+
+	includedirs { dirs.external, dirs.application, dirs.core, dirs.graphics, dirs.scene_script_core }
+
+	files {
+		"source/**.h",
+		"source/**.cpp",
+	}
+
+	libdirs { dirs.lib, dirs.dependencies }
+
+	verify_or_create_settings("TopDownGame")
+	 
+	filter "configurations:Debug"
+		defines {"_DEBUG"}
+		runtime "Debug"
+		symbols "on"
+		files {"tools/**"}
+		includedirs {"tools/"}
+	filter "configurations:Release"
+		defines "_RELEASE"
+		runtime "Release"
+		optimize "on"
+		files {"tools/**"}
+		includedirs {"tools/"}
+	filter "configurations:Retail"
+		defines "_RETAIL"
+		runtime "Release"
+		optimize "on"
+
+	filter "system:windows"
+		staticruntime "off"
+		symbols "On"		
+		systemversion "latest"
+		warnings "Extra"
+		flags { 
+			"FatalCompileWarnings",
+			"MultiProcessorCompile"
+		}
+		
+		defines {
+			"WIN32",
+			"_LIB", 
+			"TGE_SYSTEM_WINDOWS" 
+		}
+
+	filter { "system:windows", "not configurations:Retail" }
+		editandcontinue "Off"
+		buildoptions { "/Gm-" }
+		buildoptions { "/Gy" }
+		buildoptions { "/Gw" }

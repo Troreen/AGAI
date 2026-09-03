@@ -1,0 +1,24 @@
+{
+  "parent-object-definition": "",
+  "properties": [
+    {
+      "description": "Floor Tile Model",
+      "group": "",
+      "is-dynamic": false,
+      "is-per-instance": false,
+      "name": "floor",
+      "type": "Model",
+      "value": {
+        "path": "box.fbx",
+        "textures": [
+          [
+            "",
+            "",
+            "",
+            ""
+          ]
+        ]
+      }
+    }
+  ]
+}

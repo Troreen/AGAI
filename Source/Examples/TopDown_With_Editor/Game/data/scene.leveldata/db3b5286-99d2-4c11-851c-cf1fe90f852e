@@ -1,0 +1,20 @@
+{
+    "name":  "wall_-4_south",
+    "translation":  [
+                        -800,
+                        100,
+                        1000
+                    ],
+    "rotation":  [
+                     0,
+                     0,
+                     0
+                 ],
+    "path":  "",
+    "scale":  [
+                  1,
+                  1,
+                  1
+              ],
+    "object-definition":  "wall"
+}

@@ -1,0 +1,24 @@
+{
+  "parent-object-definition": "",
+  "properties": [
+    {
+      "description": "Wall Cube Model",
+      "group": "",
+      "is-dynamic": false,
+      "is-per-instance": false,
+      "name": "wall",
+      "type": "Model",
+      "value": {
+        "path": "box.fbx",
+        "textures": [
+          [
+            "",
+            "",
+            "",
+            ""
+          ]
+        ]
+      }
+    }
+  ]
+}

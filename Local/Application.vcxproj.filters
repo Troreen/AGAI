@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="tge">
+      <UniqueIdentifier>{05AE880B-71B7-887C-FA32-9F7C663B947C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\audio">
+      <UniqueIdentifier>{E6FB759C-5266-2A13-9BA4-DBB8074E0868}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\filewatcher">
+      <UniqueIdentifier>{82384792-EEC3-B456-F7D4-374B63DF1057}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\graphics">
+      <UniqueIdentifier>{05A88F6A-F10A-1F0F-9A90-57C586D2EA91}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\imgui">
+      <UniqueIdentifier>{2F6B029D-9BD5-B613-E413-68B950BD9468}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\input">
+      <UniqueIdentifier>{E41D039D-5088-B713-99C6-68B905709568}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tge\windows">
+      <UniqueIdentifier>{5F251A14-CBDA-9209-54CF-8CE0C083890D}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Source\Application\resource.h" />
+    <ClInclude Include="..\Source\Application\stdafx.h" />
+    <ClInclude Include="..\Source\Application\targetver.h" />
+    <ClInclude Include="..\Source\Application\tge\Application.h">
+      <Filter>tge</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Application\tge\StepTimer.h">
+      <Filter>tge</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Application\tge\Timer.h">
+      <Filter>tge</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Application\tge\audio\audio.h">
+      <Filter>tge\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Application\tge\filewatcher\FileWatcher.h">
+      <Filter>tge\filewatcher</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Application\tge\graphics\DX11.h">
+      <Filter>tge\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Application\tge\graphics\DepthBuffer.h">
+      <Filter>tge\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Application\tge\graphics\RenderTarget.h">
+      <Filter>tge\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Application\tge\graphics\TextureResource.h">
+      <Filter>tge\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Application\tge\imgui\ImGuiInterface.h">
+      <Filter>tge\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Application\tge\input\InputManager.h">
+      <Filter>tge\input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Application\tge\input\XInput.h">
+      <Filter>tge\input</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Application\tge\windows\WindowsWindow.h">
+      <Filter>tge\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Source\Application\version.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\Source\Application\stdafx.cpp" />
+    <ClCompile Include="..\Source\Application\tge\Application.cpp">
+      <Filter>tge</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Application\tge\Timer.cpp">
+      <Filter>tge</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Application\tge\audio\audio.cpp">
+      <Filter>tge\audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Application\tge\filewatcher\FileWatcher.cpp">
+      <Filter>tge\filewatcher</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Application\tge\graphics\DX11.cpp">
+      <Filter>tge\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Application\tge\graphics\DepthBuffer.cpp">
+      <Filter>tge\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Application\tge\graphics\RenderTarget.cpp">
+      <Filter>tge\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Application\tge\graphics\TextureResource.cpp">
+      <Filter>tge\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Application\tge\imgui\ImGuiInterface.cpp">
+      <Filter>tge\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Application\tge\input\InputManager.cpp">
+      <Filter>tge\input</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Application\tge\input\XInput.cpp">
+      <Filter>tge\input</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\Application\tge\windows\WindowsWindow.cpp">
+      <Filter>tge\windows</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

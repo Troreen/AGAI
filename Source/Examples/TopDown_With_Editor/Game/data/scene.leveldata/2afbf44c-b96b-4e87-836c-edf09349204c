@@ -1,0 +1,20 @@
+{
+    "name":  "floor_-1_-5",
+    "translation":  [
+                        -200,
+                        -10,
+                        -1000
+                    ],
+    "rotation":  [
+                     0,
+                     0,
+                     0
+                 ],
+    "path":  "",
+    "scale":  [
+                  1,
+                  0.1,
+                  1
+              ],
+    "object-definition":  "floor"
+}
