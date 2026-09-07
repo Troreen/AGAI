@@ -38,7 +38,7 @@
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v145</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -156,6 +156,8 @@
   <ItemGroup>
     <ClInclude Include="..\Source\Game\source\Actor.h" />
     <ClInclude Include="..\Source\Game\source\ActorManager.h" />
+    <ClInclude Include="..\Source\Game\source\Boid.h" />
+    <ClInclude Include="..\Source\Game\source\BoidDebugRenderer.h" />
     <ClInclude Include="..\Source\Game\source\ArriveController.h" />
     <ClInclude Include="..\Source\Game\source\Controller.h" />
     <ClInclude Include="..\Source\Game\source\GameWorld.h" />
@@ -168,6 +170,8 @@
   <ItemGroup>
     <ClCompile Include="..\Source\Game\source\Actor.cpp" />
     <ClCompile Include="..\Source\Game\source\ActorManager.cpp" />
+    <ClCompile Include="..\Source\Game\source\Boid.cpp" />
+    <ClCompile Include="..\Source\Game\source\BoidDebugRenderer.cpp" />
     <ClCompile Include="..\Source\Game\source\ArriveController.cpp" />
     <ClCompile Include="..\Source\Game\source\Controller.cpp" />
     <ClCompile Include="..\Source\Game\source\GameWorld.cpp" />

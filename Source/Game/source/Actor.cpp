@@ -16,10 +16,6 @@ Actor::Actor()
 {
 }
 
-Actor::~Actor()
-{
-}
-
 void Actor::SetTexture(const char* aTexturePath)
 {
 	mySharedData.texture = 
@@ -52,6 +48,7 @@ void Actor::Update(float aDeltaTime)
         myController->Update(*this, aDeltaTime);
         mySteeringForce = myController->GetSteeringForce(*this);
     }
+    mySteeringForce += GetAdditionalSteeringForce(aDeltaTime);
     UpdateMovement(aDeltaTime);
     mySpriteInstance.position = myPosition;
 }
@@ -93,6 +90,7 @@ void Actor::SetMaxSpeed(float aValue) { myMaxSpeed = aValue; }
 void Actor::SetMaxForce(float aValue) { myMaxForce = aValue; }
 void Actor::SetMass(float aValue) { myMass = aValue; }
 void Actor::SetRadius(float aValue) { myRadius = aValue > 0.f ? aValue : 0.f; }
+void Actor::SetColor(const Tga::Color& aColor) { mySpriteInstance.color = aColor; }
 Tga::Sprite2DInstanceData Actor::GetSpriteInstanceData() const { return mySpriteInstance; }
 Tga::SpriteSharedData Actor::GetSpriteSharedData() const { return mySharedData; }
 

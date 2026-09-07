@@ -50,7 +50,7 @@ void Go()
 #ifdef _DEBUG
 	cfg.activateDebugSystems = Tga::DebugFeature::Fps | Tga::DebugFeature::Mem | Tga::DebugFeature::Filewatcher | Tga::DebugFeature::Cpu | Tga::DebugFeature::Drawcalls | Tga::DebugFeature::OptimizeWarnings | Tga::DebugFeature::Log;
 #else
-	cfg.activateDebugSystems = Tga::DebugFeature::Filewatcher;
+	cfg.activateDebugSystems = Tga::DebugFeature::Fps | Tga::DebugFeature::Filewatcher;
 #endif
 
 	if (!Tga::Application::Start() || !Tga::GraphicsEngine::Start())

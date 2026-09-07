@@ -13,13 +13,13 @@ class Actor
 {
 public:
     Actor();
-    virtual ~Actor();
+    virtual ~Actor() = default;
 
-    void Init(const Tga::Vector2f& aPosition, const char* aSpritePath);
-    void Update(float aDeltaTime);
+    virtual void Init(const Tga::Vector2f& aPosition, const char* aSpritePath);
+    virtual void Update(float aDeltaTime);
     void UpdateMovement(float aDeltaTime);
     void SetController(std::unique_ptr<Controller> aController);
-    void Draw() const;
+    virtual void Draw() const;
     const Tga::Vector2f& GetPosition() const;
     const Tga::Vector2f& GetVelocity() const;
 	const Tga::Vector2f& GetSteeringForce() const;
@@ -33,6 +33,7 @@ public:
     void SetMaxForce(float aValue);
     void SetMass(float aValue);
     void SetRadius(float aValue);
+    void SetColor(const Tga::Color& aColor);
     
 
 	Tga::Sprite2DInstanceData GetSpriteInstanceData() const;
@@ -44,6 +45,7 @@ public:
 
 protected:
     void SetTexture(const char* aTexturePath);
+    virtual Tga::Vector2f GetAdditionalSteeringForce(float /*aDeltaTime*/) const { return {}; }
     
     Tga::Sprite2DInstanceData mySpriteInstance = {};
     Tga::SpriteSharedData mySharedData = {};

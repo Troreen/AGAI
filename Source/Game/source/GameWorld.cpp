@@ -7,14 +7,14 @@
 #include <tge/application.h>
 
 #include "Actor.h"
-#include "ArriveController.h"
-#include "SeekerController.h"
+#include "Boid.h"
 #include "WanderController.h"
-#include "SteeringDebugRenderer.h"
+#include "BoidDebugRenderer.h"
 #include "TraversalBounds.h"
 
 #include <imgui/imgui.h>
 #include <string>
+#include <random>
 
 using namespace Tga;
 
@@ -31,20 +31,30 @@ void GameWorld::Init()
 	Tga::Vector2ui intResolution = Tga::Application::GetInstance()->GetRenderSize();
 	Tga::Vector2f resolution = { (float)intResolution.x, (float)intResolution.y };
 	
-	myTraversalBounds = std::make_shared<RectTraversalBounds>(Tga::Vector2f{}, resolution);
+	myTraversalBounds = std::make_shared<RectTraversalBounds>(resolution/4.f, resolution/(4.f/3.f));
 
-	TargetControllerData seekerData;
-	seekerData.randomSeed = 1u;
-	ArriveControllerData arriveData;
-	arriveData.randomSeed = 2u;
-	WanderControllerData wanderData;
-	wanderData.randomSeed = 3u;
-	Actor& seeker = myActorManager.CreateActor(resolution * 0.5f, "sprites/robot1.png", std::make_unique<SeekerController>(seekerData));
-	Actor& arriver = myActorManager.CreateActor(resolution * 0.5f, "sprites/robot2.png", std::make_unique<ArriveController>(arriveData));
-	Actor& wanderer = myActorManager.CreateActor(resolution * 0.5f, "sprites/human.png", std::make_unique<WanderController>(wanderData));
+	constexpr int boidCount = 1024;
+	std::mt19937 randomGenerator(7u);
+	std::uniform_real_distribution<float> randomX(80.f, resolution.x - 80.f);
+	std::uniform_real_distribution<float> randomY(80.f, resolution.y - 80.f);
 
-	for (Actor* actor : { &seeker, &arriver, &wanderer })
-		actor->GetController()->SetTraversalBounds(myTraversalBounds);
+	for (int i = 0; i < boidCount; ++i)
+	{
+		WanderControllerData wanderData;
+		wanderData.randomSeed = static_cast<unsigned int>(i + 1);
+		wanderData.behaviorWeight = 0.35f;
+
+		Boid& boid = myActorManager.CreateBoid(
+			{ randomX(randomGenerator), randomY(randomGenerator) },
+			"sprites/coolFish.png",
+			std::make_unique<WanderController>(wanderData));
+		boid.SetMaxSpeed(1000.f);
+		boid.SetMaxForce(1000.f);
+		boid.SetRadius(6.f);
+		if (i == 0)
+			boid.SetColor(Tga::Color(1, 0, 0, 1));
+		boid.GetController()->SetTraversalBounds(myTraversalBounds);
+	}
 }
 
 void GameWorld::Update(float aTimeDelta)
@@ -66,51 +76,20 @@ void GameWorld::Render()
 		if (ImGui::SliderFloat((std::string("Radius##") + aSuffix).c_str(), &radius, 0.f, 100.f)) aActor.SetRadius(radius);
 	};
 
-	auto editCommonData = [](ControllerData& aData, const char* aSuffix)
+	if (ImGui::Begin("Boid Settings"))
 	{
-		ImGui::Checkbox((std::string("Use Containment##") + aSuffix).c_str(), &aData.useContainment);
-		ImGui::SliderFloat((std::string("Containment Weight##") + aSuffix).c_str(), &aData.containmentWeight, 0.f, 10.f);
-		ImGui::SliderFloat((std::string("Boundary Look Ahead##") + aSuffix).c_str(), &aData.boundaryLookAhead, 0.f, 3.f);
-		ImGui::SliderFloat((std::string("Boundary Clearance##") + aSuffix).c_str(), &aData.boundaryClearance, 0.f, 300.f);
-	};
-
-	if (ImGui::Begin("Controller Settings"))
-	{
-		if (ImGui::CollapsingHeader("Seeker", ImGuiTreeNodeFlags_DefaultOpen))
+		if (!myActorManager.GetBoids().empty())
 		{
-			Actor& seeker = myActorManager.GetActor(0);
-			auto* controller = static_cast<SeekerController*>(seeker.GetController());
-			TargetControllerData data = controller->GetTargetControllerData();
-			editActorData(seeker, "Seeker");
-			editCommonData(data, "Seeker");
-			ImGui::SliderFloat("Target Reached Radius##Seeker", &data.targetReachedRadius, 0.f, 100.f);
-			controller->SetTargetControllerData(data);
-		}
-
-		if (ImGui::CollapsingHeader("Arrive", ImGuiTreeNodeFlags_DefaultOpen))
-		{
-			Actor& arriver = myActorManager.GetActor(1);
-			auto* controller = static_cast<ArriveController*>(arriver.GetController());
-			ArriveControllerData data = controller->GetArriveControllerData();
-			editActorData(arriver, "Arrive");
-			editCommonData(data, "Arrive");
-			ImGui::SliderFloat("Slowing Radius##Arrive", &data.slowingRadius, 1.f, 500.f);
-			ImGui::SliderFloat("Target Change Interval##Arrive", &data.targetChangeInterval, 0.01f, 20.f);
-			controller->SetArriveControllerData(data);
-		}
-
-		if (ImGui::CollapsingHeader("Wander", ImGuiTreeNodeFlags_DefaultOpen))
-		{
-			Actor& wanderer = myActorManager.GetActor(2);
-			WanderController* wanderController = static_cast<WanderController*>(wanderer.GetController());
-			WanderControllerData data = wanderController->GetWanderControllerData();
-			editActorData(wanderer, "Wander");
-			editCommonData(data, "Wander");
-			ImGui::SliderFloat("Circle Radius##Wander", &data.circleRadius, 1.f, 300.f);
-			ImGui::SliderFloat("Circle Distance##Wander", &data.circleDistance, 1.f, 500.f);
-			ImGui::SliderFloat("Max Turn Rate##Wander", &data.maxTurnRate, 0.f, 10.f);
-			ImGui::SliderFloat("Direction Change Interval##Wander", &data.directionChangeInterval, 0.01f, 2.f);
-			wanderController->SetWanderControllerData(data);
+			Boid& boid = *myActorManager.GetBoids().front();
+			BoidSettings settings = boid.GetBoidSettings();
+			editActorData(boid, "Boid");
+			ImGui::SliderFloat("Perception Radius##Boid", &settings.perceptionRadius, 20.f, 500.f);
+			ImGui::SliderFloat("Avoidance Radius##Boid", &settings.avoidanceRadius, 5.f, 200.f);
+			ImGui::SliderFloat("Alignment##Boid", &settings.alignmentWeight, 0.f, 5.f);
+			ImGui::SliderFloat("Cohesion##Boid", &settings.cohesionWeight, 0.f, 5.f);
+			ImGui::SliderFloat("Separation##Boid", &settings.separationWeight, 0.f, 5.f);
+			for (Boid* flockBoid : myActorManager.GetBoids())
+				flockBoid->SetBoidSettings(settings);
 		}
 	}
 	ImGui::End();
@@ -118,12 +97,10 @@ void GameWorld::Render()
 	myActorManager.Draw();
 
 #if !IS_RETAIL_BUILD
-	SteeringDebugRenderer debugRenderer;
-	for (std::size_t i = 0; i < myActorManager.GetActorCount(); ++i)
+	if (!myActorManager.GetBoids().empty())
 	{
-		const Actor& actor = myActorManager.GetActor(i);
-		if (actor.GetController())
-			debugRenderer.Draw(actor, *actor.GetController());
+		BoidDebugRenderer debugRenderer;
+		debugRenderer.DrawSelected(*myActorManager.GetBoids().front());
 	}
 #endif
 }
