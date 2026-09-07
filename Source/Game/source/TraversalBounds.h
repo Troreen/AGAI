@@ -40,3 +40,17 @@ private:
     Tga::Vector2f myMin;
     Tga::Vector2f myMax;
 };
+
+// 3D counterpart used by free-flight agents. Coordinates are world-space
+// min/max corners and the actor remains inside the inset rectangular volume.
+class RectTraversalBounds3D
+{
+public:
+    RectTraversalBounds3D(const Tga::Vector3f& aMin, const Tga::Vector3f& aMax);
+    Tga::Vector3f GetNearestValidPoint(const Tga::Vector3f& aPosition, float aInset) const;
+    Tga::Vector3f GetRecoveryDirection(const Tga::Vector3f& aCurrentPosition,
+        const Tga::Vector3f& aPredictedPosition, float aInset) const;
+private:
+    Tga::Vector3f myMin;
+    Tga::Vector3f myMax;
+};

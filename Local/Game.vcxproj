@@ -156,12 +156,15 @@
   <ItemGroup>
     <ClInclude Include="..\Source\Game\source\Actor.h" />
     <ClInclude Include="..\Source\Game\source\ActorManager.h" />
-    <ClInclude Include="..\Source\Game\source\Boid.h" />
-    <ClInclude Include="..\Source\Game\source\BoidDebugRenderer.h" />
     <ClInclude Include="..\Source\Game\source\ArriveController.h" />
+    <ClInclude Include="..\Source\Game\source\Boid.h" />
+    <ClInclude Include="..\Source\Game\source\Boid3D.h" />
+    <ClInclude Include="..\Source\Game\source\BoidDebugRenderer.h" />
     <ClInclude Include="..\Source\Game\source\Controller.h" />
+    <ClInclude Include="..\Source\Game\source\FreeFlyCameraController.h" />
     <ClInclude Include="..\Source\Game\source\GameWorld.h" />
     <ClInclude Include="..\Source\Game\source\Go.h" />
+    <ClInclude Include="..\Source\Game\source\ObstacleAvoidance.h" />
     <ClInclude Include="..\Source\Game\source\SeekerController.h" />
     <ClInclude Include="..\Source\Game\source\SteeringDebugRenderer.h" />
     <ClInclude Include="..\Source\Game\source\TraversalBounds.h" />
@@ -170,10 +173,12 @@
   <ItemGroup>
     <ClCompile Include="..\Source\Game\source\Actor.cpp" />
     <ClCompile Include="..\Source\Game\source\ActorManager.cpp" />
-    <ClCompile Include="..\Source\Game\source\Boid.cpp" />
-    <ClCompile Include="..\Source\Game\source\BoidDebugRenderer.cpp" />
     <ClCompile Include="..\Source\Game\source\ArriveController.cpp" />
+    <ClCompile Include="..\Source\Game\source\Boid.cpp" />
+    <ClCompile Include="..\Source\Game\source\Boid3D.cpp" />
+    <ClCompile Include="..\Source\Game\source\BoidDebugRenderer.cpp" />
     <ClCompile Include="..\Source\Game\source\Controller.cpp" />
+    <ClCompile Include="..\Source\Game\source\FreeFlyCameraController.cpp" />
     <ClCompile Include="..\Source\Game\source\GameWorld.cpp" />
     <ClCompile Include="..\Source\Game\source\Go.cpp" />
     <ClCompile Include="..\Source\Game\source\SeekerController.cpp" />
