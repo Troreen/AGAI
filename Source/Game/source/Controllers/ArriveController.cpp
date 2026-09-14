@@ -1,5 +1,6 @@
 #include "ArriveController.h"
-#include "Actor.h"
+#include "../Actor.h"
+#include "ControllerUtils.h"
 
 #include <algorithm>
 #include <cmath>
@@ -10,24 +11,9 @@ ArriveController::ArriveController(const ArriveControllerData& aData)
     SetArriveControllerData(aData);
 }
 
-Tga::Vector2f ArriveController::GetDesiredVelocity(const Actor& aActor) const
+CommonUtilities::Vector2f ArriveController::GetDesiredVelocity(const Actor& aActor) const
 {
-    Tga::Vector2f toTarget = myTargetPosition - aActor.GetPosition();
-    const float distanceToTarget = toTarget.Length();
-    if (distanceToTarget <= 0.0001f)
-    {
-        return {};
-    }
-
-    // remap the desired speed based on the distance to the target and the slowing radius
-    // remap takes a value from one numerical range and converts it proportionally into another numerical range.
-    float desiredSpeed = aActor.GetMaxSpeed();
-    if (distanceToTarget < myArriveData.slowingRadius)
-    {
-        const float slowDownFactor = distanceToTarget / myArriveData.slowingRadius;
-        desiredSpeed *= slowDownFactor;
-    }
-    return (toTarget / distanceToTarget) * desiredSpeed;
+    return ControllerUtils::ArriveDesiredVelocity(aActor, myTargetPosition, myArriveData.slowingRadius);
 }
 
 void ArriveController::Update(Actor& aActor, float aDeltaTime)

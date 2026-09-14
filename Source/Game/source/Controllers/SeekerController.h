@@ -5,7 +5,7 @@ class SeekerController final : public TargetController
 {
 public:
     explicit SeekerController(const TargetControllerData& aData = {});
-    Tga::Vector2f GetDesiredVelocity(const Actor& aActor) const override;
+    CommonUtilities::Vector2f GetDesiredVelocity(const Actor& aActor) const override;
     void Update(Actor& aActor, float aDeltaTime) override;
     ControllerDebugInfo GetDebugInfo() const override;
 };

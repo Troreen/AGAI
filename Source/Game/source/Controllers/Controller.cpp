@@ -1,6 +1,7 @@
 #include "Controller.h"
-#include "Actor.h"
-#include "TraversalBounds.h"
+#include "../Actor.h"
+#include "ControllerUtils.h"
+#include "../Interfaces/TraversalBounds.h"
 
 #include <tge/application.h>
 
@@ -12,18 +13,20 @@ Controller::Controller(const ControllerData& aData)
 {
 }
 
-Tga::Vector2f Controller::GetSteeringForce(const Actor& aActor) const
+CommonUtilities::Vector2f Controller::GetSteeringForce(const Actor& aActor) const
 {
-    const Tga::Vector2f primaryForce =
-        (GetDesiredVelocity(aActor) - aActor.GetVelocity()) * myData.behaviorWeight;
+    const CommonUtilities::Vector2f primaryForce =
+        ControllerUtils::SteerTowards(aActor, GetDesiredVelocity(aActor)) * GetBehaviorWeight();
 
     bool isOutsideBounds = false;
-    const Tga::Vector2f containmentForce = GetContainmentForce(aActor, isOutsideBounds);
+    const CommonUtilities::Vector2f containmentForce = GetContainmentForce(aActor, isOutsideBounds);
     if (isOutsideBounds)
         return containmentForce;
 
     return primaryForce + containmentForce * myData.containmentWeight;
 }
+
+float Controller::GetBehaviorWeight() const { return myData.behaviorWeight; }
 
 const ControllerData& Controller::GetControllerData() const
 {
@@ -44,16 +47,16 @@ void Controller::SetTraversalBounds(std::shared_ptr<const ITraversalBounds> aBou
     myTraversalBounds = std::move(aBounds);
 }
 
-Tga::Vector2f Controller::GetContainmentForce(const Actor& aActor, bool& aIsOutsideBounds) const
+CommonUtilities::Vector2f Controller::GetContainmentForce(const Actor& aActor, bool& aIsOutsideBounds) const
 {
     aIsOutsideBounds = false;
     if (!myData.useContainment || !myTraversalBounds)
         return {};
 
-    const Tga::Vector2f position = aActor.GetPosition();
-    const Tga::Vector2f predictedPosition = position + aActor.GetVelocity() * myData.boundaryLookAhead;
+    const CommonUtilities::Vector2f position = aActor.GetPosition();
+    const CommonUtilities::Vector2f predictedPosition = position + aActor.GetVelocity() * myData.boundaryLookAhead;
     const float inset = aActor.GetRadius() + myData.boundaryClearance;
-    const Tga::Vector2f recovery = myTraversalBounds->GetRecoveryDirection(position, predictedPosition, inset);
+    const CommonUtilities::Vector2f recovery = myTraversalBounds->GetRecoveryDirection(position, predictedPosition, inset);
     if (recovery.LengthSqr() <= 0.0001f)
         return {};
 
@@ -63,7 +66,7 @@ Tga::Vector2f Controller::GetContainmentForce(const Actor& aActor, bool& aIsOuts
     return recovery.GetNormalized() * aActor.GetMaxSpeed() - aActor.GetVelocity();
 }
 
-Tga::Vector2f Controller::GetNearestValidPosition(const Actor& aActor, const Tga::Vector2f& aPosition) const
+CommonUtilities::Vector2f Controller::GetNearestValidPosition(const Actor& aActor, const CommonUtilities::Vector2f& aPosition) const
 {
     if (!myTraversalBounds)
         return aPosition;
@@ -96,7 +99,7 @@ TargetController::TargetController(const TargetControllerData& aData)
 {
 }
 
-void TargetController::SetTargetPosition(const Tga::Vector2f& aPosition)
+void TargetController::SetTargetPosition(const CommonUtilities::Vector2f& aPosition)
 {
     myTargetPosition = aPosition;
 }
@@ -116,7 +119,7 @@ void TargetController::KeepTargetReachable(const Actor& aActor)
     myTargetPosition = GetNearestValidPosition(aActor, myTargetPosition);
 }
 
-const Tga::Vector2f& TargetController::GetTargetPosition() const
+const CommonUtilities::Vector2f& TargetController::GetTargetPosition() const
 {
     return myTargetPosition;
 }
@@ -133,7 +136,7 @@ void TargetController::SetTargetControllerData(const TargetControllerData& aData
     SetControllerData(myTargetData);
 }
 
-Tga::Vector2f TargetController::GenerateRandomTarget()
+CommonUtilities::Vector2f TargetController::GenerateRandomTarget()
 {
     const Tga::Vector2ui resolution = Tga::Application::GetInstance()->GetRenderSize();
     std::uniform_real_distribution<float> xDistribution(0.f, static_cast<float>(resolution.x));

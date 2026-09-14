@@ -7,16 +7,15 @@
 #include <tge/application.h>
 
 #include "Actor.h"
-#include "Boid.h"
-#include "WanderController.h"
-#include "BoidDebugRenderer.h"
-#include "TraversalBounds.h"
+#include "Controllers/WanderController.h"
+#include "Controllers/AlignmentController.h"
+#include "Controllers/CohesionController.h"
+#include "Controllers/SeparationController.h"
+#include "Interfaces/TraversalBounds.h"
 
 #include <imgui/imgui.h>
 #include <string>
 #include <random>
-
-using namespace Tga;
 
 GameWorld::GameWorld()
 {
@@ -28,79 +27,111 @@ GameWorld::~GameWorld()
 
 void GameWorld::Init()
 {
-	Tga::Vector2ui intResolution = Tga::Application::GetInstance()->GetRenderSize();
-	Tga::Vector2f resolution = { (float)intResolution.x, (float)intResolution.y };
+	const Tga::Vector2ui intResolution = Tga::Application::GetInstance()->GetRenderSize();
+	const CommonUtilities::Vector2f resolution = {
+		static_cast<float>(intResolution.x), static_cast<float>(intResolution.y) };
 	
 	myTraversalBounds = std::make_shared<RectTraversalBounds>(resolution/4.f, resolution/(4.f/3.f));
+	const float cellSize = myFlockingSettings.perceptionRadius;
+	const int gridWidth = static_cast<int>(std::ceil(resolution.x / cellSize));
+	const int gridHeight = static_cast<int>(std::ceil(resolution.y / cellSize));
+	myFlockingGrid.Init({}, cellSize, gridWidth, gridHeight);
 
-	constexpr int boidCount = 1024;
+	constexpr int actorCount = 2048;
 	std::mt19937 randomGenerator(7u);
 	std::uniform_real_distribution<float> randomX(80.f, resolution.x - 80.f);
 	std::uniform_real_distribution<float> randomY(80.f, resolution.y - 80.f);
 
-	for (int i = 0; i < boidCount; ++i)
+	for (int i = 0; i < actorCount; ++i)
 	{
 		WanderControllerData wanderData;
 		wanderData.randomSeed = static_cast<unsigned int>(i + 1);
 		wanderData.behaviorWeight = 0.35f;
 
-		Boid& boid = myActorManager.CreateBoid(
+		Actor& actor = myActorManager.CreateActor(
 			{ randomX(randomGenerator), randomY(randomGenerator) },
-			"sprites/coolFish.png",
+			"sprites/CoolFish.png",
 			std::make_unique<WanderController>(wanderData));
-		boid.SetMaxSpeed(1000.f);
-		boid.SetMaxForce(1000.f);
-		boid.SetRadius(6.f);
+		actor.SetMaxSpeed(1000.f);
+		actor.SetMaxForce(1000.f);
+		actor.SetRadius(6.f);
 		if (i == 0)
-			boid.SetColor(Tga::Color(1, 0, 0, 1));
-		boid.GetController()->SetTraversalBounds(myTraversalBounds);
+		{
+			actor.SetColor(Tga::Color(1, 0, 0, 1));
+		}
+		Controller* const wanderController = actor.GetController();
+		wanderController->SetTraversalBounds(myTraversalBounds);
+		actor.AddController(std::make_unique<AlignmentController>(myFlockingSettings));
+		actor.AddController(std::make_unique<CohesionController>(myFlockingSettings));
+		actor.AddController(std::make_unique<SeparationController>(myFlockingSettings));
 	}
 }
 
 void GameWorld::Update(float aTimeDelta)
 {
+	UpdateDebugUI();
+	myActorManager.BuildNeighbourLists(myFlockingGrid, myFlockingSettings.perceptionRadius);
 	myActorManager.Update(aTimeDelta);
+}
+
+void GameWorld::UpdateDebugUI()
+{
+	if (!ImGui::Begin("Flocking Settings"))
+	{
+		ImGui::End();
+		return;
+	}
+
+	if (myActorManager.GetActorCount() > 0)
+	{
+		Actor& actor = myActorManager.GetActor(0);
+		float maxSpeed = actor.GetMaxSpeed();
+		float maxForce = actor.GetMaxForce();
+		float mass = actor.GetMass();
+		float radius = actor.GetRadius();
+
+		const bool maxSpeedChanged = ImGui::SliderFloat("Max Speed", &maxSpeed, 0.f, 1000.f);
+		if (maxSpeedChanged)
+		{
+			for (std::size_t index = 0; index < myActorManager.GetActorCount(); ++index)
+			{
+				myActorManager.GetActor(index).SetMaxSpeed(maxSpeed);
+			}
+		}
+		const bool maxForceChanged = ImGui::SliderFloat("Max Force", &maxForce, 0.f, 2000.f);
+		if (maxForceChanged)
+		{
+			for (std::size_t index = 0; index < myActorManager.GetActorCount(); ++index)
+			{
+				myActorManager.GetActor(index).SetMaxForce(maxForce);
+			}
+		}
+		const bool massChanged = ImGui::SliderFloat("Mass", &mass, 0.1f, 20.f);
+		if (massChanged)
+		{
+			for (std::size_t index = 0; index < myActorManager.GetActorCount(); ++index)
+			{
+				myActorManager.GetActor(index).SetMass(mass);
+			}
+		}
+		const bool radiusChanged = ImGui::SliderFloat("Radius", &radius, 0.f, 100.f);
+		if (radiusChanged)
+		{
+			for (std::size_t index = 0; index < myActorManager.GetActorCount(); ++index)
+			{
+				myActorManager.GetActor(index).SetRadius(radius);
+			}
+		}
+	}
+	ImGui::SliderFloat("Perception Radius", &myFlockingSettings.perceptionRadius, 20.f, 500.f);
+	ImGui::SliderFloat("Avoidance Radius", &myFlockingSettings.avoidanceRadius, 5.f, 200.f);
+	ImGui::SliderFloat("Alignment", &myFlockingSettings.alignmentWeight, 0.f, 5.f);
+	ImGui::SliderFloat("Cohesion", &myFlockingSettings.cohesionWeight, 0.f, 5.f);
+	ImGui::SliderFloat("Separation", &myFlockingSettings.separationWeight, 0.f, 5.f);
+	ImGui::End();
 }
 
 void GameWorld::Render()
 {
-	auto editActorData = [](Actor& aActor, const char* aSuffix)
-	{
-		float maxSpeed = aActor.GetMaxSpeed();
-		float maxForce = aActor.GetMaxForce();
-		float mass = aActor.GetMass();
-		float radius = aActor.GetRadius();
-		if (ImGui::SliderFloat((std::string("Max Speed##") + aSuffix).c_str(), &maxSpeed, 0.f, 1000.f)) aActor.SetMaxSpeed(maxSpeed);
-		if (ImGui::SliderFloat((std::string("Max Force##") + aSuffix).c_str(), &maxForce, 0.f, 2000.f)) aActor.SetMaxForce(maxForce);
-		if (ImGui::SliderFloat((std::string("Mass##") + aSuffix).c_str(), &mass, 0.1f, 20.f)) aActor.SetMass(mass);
-		if (ImGui::SliderFloat((std::string("Radius##") + aSuffix).c_str(), &radius, 0.f, 100.f)) aActor.SetRadius(radius);
-	};
-
-	if (ImGui::Begin("Boid Settings"))
-	{
-		if (!myActorManager.GetBoids().empty())
-		{
-			Boid& boid = *myActorManager.GetBoids().front();
-			BoidSettings settings = boid.GetBoidSettings();
-			editActorData(boid, "Boid");
-			ImGui::SliderFloat("Perception Radius##Boid", &settings.perceptionRadius, 20.f, 500.f);
-			ImGui::SliderFloat("Avoidance Radius##Boid", &settings.avoidanceRadius, 5.f, 200.f);
-			ImGui::SliderFloat("Alignment##Boid", &settings.alignmentWeight, 0.f, 5.f);
-			ImGui::SliderFloat("Cohesion##Boid", &settings.cohesionWeight, 0.f, 5.f);
-			ImGui::SliderFloat("Separation##Boid", &settings.separationWeight, 0.f, 5.f);
-			for (Boid* flockBoid : myActorManager.GetBoids())
-				flockBoid->SetBoidSettings(settings);
-		}
-	}
-	ImGui::End();
-
 	myActorManager.Draw();
-
-#if !IS_RETAIL_BUILD
-	if (!myActorManager.GetBoids().empty())
-	{
-		BoidDebugRenderer debugRenderer;
-		debugRenderer.DrawSelected(*myActorManager.GetBoids().front());
-	}
-#endif
 }

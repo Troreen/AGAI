@@ -1,6 +1,6 @@
 #pragma once
 
-#include <tge/math/vector.h>
+#include <Vector2.hpp>
 #include <memory>
 #include <random>
 
@@ -32,12 +32,12 @@ struct TargetControllerData : ControllerData
 struct ControllerDebugInfo
 {
     bool hasTarget = false;
-    Tga::Vector2f targetPosition = {};
+    CommonUtilities::Vector2f targetPosition = {};
     float slowingRadius = 0.f;
     bool hasSlowingRadius = false;
     float wanderCircleRadius = 0.f;
     float wanderCircleDistance = 0.f;
-    Tga::Vector2f wanderCircleCenter = {};
+    CommonUtilities::Vector2f wanderCircleCenter = {};
     float wanderTargetAngle = 0.f;
 };
 
@@ -45,8 +45,8 @@ struct ContainmentDebugInfo
 {
     bool isEnabled = false;
     bool needsCorrection = false;
-    Tga::Vector2f predictedPosition = {};
-    Tga::Vector2f nearestValidPoint = {};
+    CommonUtilities::Vector2f predictedPosition = {};
+    CommonUtilities::Vector2f nearestValidPoint = {};
     float actorRadius = 0.f;
     float boundaryClearance = 0.f;
 };
@@ -56,8 +56,9 @@ class Controller
 public:
     explicit Controller(const ControllerData& aData = {});
     virtual ~Controller() = default;
-    virtual Tga::Vector2f GetDesiredVelocity(const Actor&) const { return {}; }
-    virtual Tga::Vector2f GetSteeringForce(const Actor& aActor) const;
+    virtual CommonUtilities::Vector2f GetDesiredVelocity(const Actor&) const { return {}; }
+    virtual CommonUtilities::Vector2f GetSteeringForce(const Actor& aActor) const;
+    virtual float GetBehaviorWeight() const;
     virtual void Update(Actor&, float) {}
     virtual ControllerDebugInfo GetDebugInfo() const { return {}; }
 
@@ -68,8 +69,8 @@ public:
     void SetTraversalBounds(std::shared_ptr<const ITraversalBounds> aBounds);
 
 protected:
-    Tga::Vector2f GetContainmentForce(const Actor& aActor, bool& aIsOutsideBounds) const;
-    Tga::Vector2f GetNearestValidPosition(const Actor& aActor, const Tga::Vector2f& aPosition) const;
+    CommonUtilities::Vector2f GetContainmentForce(const Actor& aActor, bool& aIsOutsideBounds) const;
+    CommonUtilities::Vector2f GetNearestValidPosition(const Actor& aActor, const CommonUtilities::Vector2f& aPosition) const;
 
 private:
     ControllerData myData;
@@ -80,19 +81,19 @@ class TargetController : public Controller
 {
 public:
     explicit TargetController(const TargetControllerData& aData = {});
-    void SetTargetPosition(const Tga::Vector2f& aPosition);
+    void SetTargetPosition(const CommonUtilities::Vector2f& aPosition);
     void SetRandomTarget();
     void SetRandomTarget(const Actor& aActor);
-    const Tga::Vector2f& GetTargetPosition() const;
+    const CommonUtilities::Vector2f& GetTargetPosition() const;
     const TargetControllerData& GetTargetControllerData() const;
     void SetTargetControllerData(const TargetControllerData& aData);
 
 protected:
-    Tga::Vector2f myTargetPosition = {};
+    CommonUtilities::Vector2f myTargetPosition = {};
     void KeepTargetReachable(const Actor& aActor);
 
 private:
-    Tga::Vector2f GenerateRandomTarget();
+    CommonUtilities::Vector2f GenerateRandomTarget();
     TargetControllerData myTargetData;
     std::mt19937 myRandomGenerator;
 };

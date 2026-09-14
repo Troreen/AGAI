@@ -20,7 +20,7 @@ class WanderController final : public Controller
 {
 public:
     explicit WanderController(const WanderControllerData& aData = {});
-    Tga::Vector2f GetDesiredVelocity(const Actor& aActor) const override;
+    CommonUtilities::Vector2f GetDesiredVelocity(const Actor& aActor) const override;
     void Update(Actor& aActor, float aDeltaTime) override;
     ControllerDebugInfo GetDebugInfo() const override;
 
@@ -28,10 +28,10 @@ public:
     void SetWanderControllerData(const WanderControllerData& aData);
 
 private:
-    Tga::Vector2f GetWanderTarget() const;
+    CommonUtilities::Vector2f GetWanderTarget() const;
     float GenerateTurnRate();
 
-    Tga::Vector2f myWanderCircleCenter = {};
+    CommonUtilities::Vector2f myWanderCircleCenter = {};
     float myWanderTargetAngle = 0.f;
     float myJitterTimer = 0.f;
     float myCurrentJitter = 0.f;

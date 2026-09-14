@@ -158,31 +158,38 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\Source\Game\source\Actor.h" />
-    <ClInclude Include="..\Source\Game\source\ActorManager.h" />
-    <ClInclude Include="..\Source\Game\source\ArriveController.h" />
-    <ClInclude Include="..\Source\Game\source\Boid.h" />
-    <ClInclude Include="..\Source\Game\source\BoidDebugRenderer.h" />
-    <ClInclude Include="..\Source\Game\source\Controller.h" />
+    <ClInclude Include="..\Source\Game\source\Controllers\AlignmentController.h" />
+    <ClInclude Include="..\Source\Game\source\Controllers\ArriveController.h" />
+    <ClInclude Include="..\Source\Game\source\Controllers\CohesionController.h" />
+    <ClInclude Include="..\Source\Game\source\Controllers\Controller.h" />
+    <ClInclude Include="..\Source\Game\source\Controllers\ControllerUtils.h" />
+    <ClInclude Include="..\Source\Game\source\Controllers\FleeController.h" />
+    <ClInclude Include="..\Source\Game\source\Controllers\SeekerController.h" />
+    <ClInclude Include="..\Source\Game\source\Controllers\SeparationController.h" />
+    <ClInclude Include="..\Source\Game\source\Controllers\WanderController.h" />
+    <ClInclude Include="..\Source\Game\source\FlockingSettings.h" />
     <ClInclude Include="..\Source\Game\source\GameWorld.h" />
     <ClInclude Include="..\Source\Game\source\Go.h" />
-    <ClInclude Include="..\Source\Game\source\SeekerController.h" />
+    <ClInclude Include="..\Source\Game\source\Interfaces\TraversalBounds.h" />
+    <ClInclude Include="..\Source\Game\source\Managers\ActorManager.h" />
     <ClInclude Include="..\Source\Game\source\SteeringDebugRenderer.h" />
-    <ClInclude Include="..\Source\Game\source\TraversalBounds.h" />
-    <ClInclude Include="..\Source\Game\source\WanderController.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Source\Game\source\Actor.cpp" />
-    <ClCompile Include="..\Source\Game\source\ActorManager.cpp" />
-    <ClCompile Include="..\Source\Game\source\ArriveController.cpp" />
-    <ClCompile Include="..\Source\Game\source\Boid.cpp" />
-    <ClCompile Include="..\Source\Game\source\BoidDebugRenderer.cpp" />
-    <ClCompile Include="..\Source\Game\source\Controller.cpp" />
+    <ClCompile Include="..\Source\Game\source\Controllers\AlignmentController.cpp" />
+    <ClCompile Include="..\Source\Game\source\Controllers\ArriveController.cpp" />
+    <ClCompile Include="..\Source\Game\source\Controllers\CohesionController.cpp" />
+    <ClCompile Include="..\Source\Game\source\Controllers\Controller.cpp" />
+    <ClCompile Include="..\Source\Game\source\Controllers\ControllerUtils.cpp" />
+    <ClCompile Include="..\Source\Game\source\Controllers\FleeController.cpp" />
+    <ClCompile Include="..\Source\Game\source\Controllers\SeekerController.cpp" />
+    <ClCompile Include="..\Source\Game\source\Controllers\SeparationController.cpp" />
+    <ClCompile Include="..\Source\Game\source\Controllers\WanderController.cpp" />
     <ClCompile Include="..\Source\Game\source\GameWorld.cpp" />
     <ClCompile Include="..\Source\Game\source\Go.cpp" />
-    <ClCompile Include="..\Source\Game\source\SeekerController.cpp" />
+    <ClCompile Include="..\Source\Game\source\Interfaces\TraversalBounds.cpp" />
+    <ClCompile Include="..\Source\Game\source\Managers\ActorManager.cpp" />
     <ClCompile Include="..\Source\Game\source\SteeringDebugRenderer.cpp" />
-    <ClCompile Include="..\Source\Game\source\TraversalBounds.cpp" />
-    <ClCompile Include="..\Source\Game\source\WanderController.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="External.vcxproj">

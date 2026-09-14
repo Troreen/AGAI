@@ -5,7 +5,9 @@
 #include <tge/drawers/SpriteDrawer.h>
 #include <tge/texture/TextureManager.h>
 #include <tge/application.h>
+#include <Vector2.hpp>
 #include <memory>
+#include <vector>
 class Controller;
 
 
@@ -15,15 +17,18 @@ public:
     Actor();
     virtual ~Actor() = default;
 
-    virtual void Init(const Tga::Vector2f& aPosition, const char* aSpritePath);
-    virtual void Update(float aDeltaTime);
+    virtual void Init(const CommonUtilities::Vector2f& aPosition, const char* aSpritePath);
+    void Update(float aDeltaTime);
     void UpdateMovement(float aDeltaTime);
     void SetController(std::unique_ptr<Controller> aController);
+    void AddController(std::unique_ptr<Controller> aController);
+    void SetNeighbours(std::vector<const Actor*> aNeighbours);
     virtual void Draw() const;
-    const Tga::Vector2f& GetPosition() const;
-    const Tga::Vector2f& GetVelocity() const;
-	const Tga::Vector2f& GetSteeringForce() const;
-	const Tga::Vector2f& GetPreviousSteeringForce() const;
+    const CommonUtilities::Vector2f& GetPosition() const;
+    const CommonUtilities::Vector2f& GetVelocity() const;
+    const std::vector<const Actor*>& GetNeighbours() const;
+	const CommonUtilities::Vector2f& GetSteeringForce() const;
+	const CommonUtilities::Vector2f& GetPreviousSteeringForce() const;
 
     float GetMaxSpeed() const;
     float GetMaxForce() const;
@@ -40,13 +45,12 @@ public:
 	Tga::SpriteSharedData GetSpriteSharedData() const;
     const Controller* GetController() const;
     Controller* GetController();
+    const std::vector<std::unique_ptr<Controller>>& GetControllers() const;
 
-    void AddSteeringForce(const Tga::Vector2f& aForce);
+    void AddSteeringForce(const CommonUtilities::Vector2f& aForce);
 
 protected:
     void SetTexture(const char* aTexturePath);
-    virtual Tga::Vector2f GetAdditionalSteeringForce(float /*aDeltaTime*/) const { return {}; }
-    
     Tga::Sprite2DInstanceData mySpriteInstance = {};
     Tga::SpriteSharedData mySharedData = {};
 	const char* mySpritePath = nullptr;
@@ -54,12 +58,13 @@ protected:
 
 private:
 
-    std::unique_ptr<Controller> myController;
-    Tga::Vector2f myPosition;
-    Tga::Vector2f myVelocity;
-    Tga::Vector2f myAcceleration;
-    Tga::Vector2f mySteeringForce;
-    Tga::Vector2f myPreviousSteeringForce;
+    std::vector<std::unique_ptr<Controller>> myControllers;
+    std::vector<const Actor*> myNeighbours; // create list on stack in gameworld and preallocate memory for it so creaete/destor/pushback is cheap. you can do it thrugh a function in gameworld and none neds to own the list essentially. 
+    CommonUtilities::Vector2f myPosition;
+    CommonUtilities::Vector2f myVelocity;
+    CommonUtilities::Vector2f myAcceleration;
+    CommonUtilities::Vector2f mySteeringForce;
+    CommonUtilities::Vector2f myPreviousSteeringForce;
 
     // Maximum steering force accepted each frame; caps turning/acceleration.
     float myMaxForce = 500.f;

@@ -1,9 +1,9 @@
 #include "Actor.h"
-#include "Controller.h"
+#include "Controllers/Controller.h"
 
 namespace
 {
-	void LimitVector(Tga::Vector2f& aVector, const float aMaximumLength)
+	void LimitVector(CommonUtilities::Vector2f& aVector, const float aMaximumLength)
 	{
 		const float length = aVector.Length();
 		if (length > aMaximumLength && length > 0.f)
@@ -24,13 +24,13 @@ void Actor::SetTexture(const char* aTexturePath)
 			.GetTexture(aTexturePath);
 }
 
-void Actor::Init(const Tga::Vector2f& aPosition, const char* aSpritePath)
+void Actor::Init(const CommonUtilities::Vector2f& aPosition, const char* aSpritePath)
 {
 	mySpritePath = aSpritePath;
 	SetTexture(mySpritePath);
 	myPosition = aPosition;
     mySpriteInstance.pivot = { 0.5f, 0.5f };
-    mySpriteInstance.position = myPosition;
+    mySpriteInstance.position = myPosition.ToTga();
     mySpriteInstance.size = { 50.f, 50.f };
     mySpriteInstance.color = Tga::Color(1, 1, 1, 1);
 
@@ -38,19 +38,34 @@ void Actor::Init(const Tga::Vector2f& aPosition, const char* aSpritePath)
 
 void Actor::SetController(std::unique_ptr<Controller> aController)
 {
-    myController = std::move(aController);
+    myControllers.clear();
+    AddController(std::move(aController));
+}
+
+void Actor::AddController(std::unique_ptr<Controller> aController)
+{
+    if (aController)
+    {
+        myControllers.push_back(std::move(aController));
+    }
+}
+
+void Actor::SetNeighbours(std::vector<const Actor*> aNeighbours)
+{
+    myNeighbours = std::move(aNeighbours);
 }
 
 void Actor::Update(float aDeltaTime)
 {
-    if (myController)
+    CommonUtilities::Vector2f totalSteering = {};
+    for (const std::unique_ptr<Controller>& controller : myControllers)
     {
-        myController->Update(*this, aDeltaTime);
-        mySteeringForce = myController->GetSteeringForce(*this);
+        controller->Update(*this, aDeltaTime);
+        totalSteering += controller->GetSteeringForce(*this);
     }
-    mySteeringForce += GetAdditionalSteeringForce(aDeltaTime);
+    mySteeringForce = totalSteering;
     UpdateMovement(aDeltaTime);
-    mySpriteInstance.position = myPosition;
+    mySpriteInstance.position = myPosition.ToTga();
 }
 
 void Actor::UpdateMovement(float aDeltaTime)
@@ -74,31 +89,35 @@ void Actor::UpdateMovement(float aDeltaTime)
 
 	myRotation = atan2f(myVelocity.y, myVelocity.x);
 	mySpriteInstance.rotation = myRotation;
-	mySteeringForce.Set(0.f, 0.f);
+	mySteeringForce = {};
 }
 
-const Tga::Vector2f& Actor::GetPosition() const { return myPosition; }
-const Tga::Vector2f& Actor::GetVelocity() const { return myVelocity; }
-const Tga::Vector2f& Actor::GetSteeringForce() const { return mySteeringForce; }
-const Tga::Vector2f& Actor::GetPreviousSteeringForce() const { return myPreviousSteeringForce; }
+const CommonUtilities::Vector2f& Actor::GetPosition() const { return myPosition; }
+const CommonUtilities::Vector2f& Actor::GetVelocity() const { return myVelocity; }
+const std::vector<const Actor*>& Actor::GetNeighbours() const { return myNeighbours; }
+const CommonUtilities::Vector2f& Actor::GetSteeringForce() const { return mySteeringForce; }
+const CommonUtilities::Vector2f& Actor::GetPreviousSteeringForce() const { return myPreviousSteeringForce; }
 
 float Actor::GetMaxSpeed() const { return myMaxSpeed; }
 float Actor::GetMaxForce() const { return myMaxForce; }
 float Actor::GetMass() const { return myMass; }
 float Actor::GetRadius() const { return myRadius; }
+
 void Actor::SetMaxSpeed(float aValue) { myMaxSpeed = aValue; }
 void Actor::SetMaxForce(float aValue) { myMaxForce = aValue; }
 void Actor::SetMass(float aValue) { myMass = aValue; }
 void Actor::SetRadius(float aValue) { myRadius = aValue > 0.f ? aValue : 0.f; }
 void Actor::SetColor(const Tga::Color& aColor) { mySpriteInstance.color = aColor; }
+
 Tga::Sprite2DInstanceData Actor::GetSpriteInstanceData() const { return mySpriteInstance; }
 Tga::SpriteSharedData Actor::GetSpriteSharedData() const { return mySharedData; }
 
-const Controller* Actor::GetController() const { return myController.get(); }
-Controller* Actor::GetController() { return myController.get(); }
+const Controller* Actor::GetController() const { return myControllers.empty() ? nullptr : myControllers.front().get(); }
+Controller* Actor::GetController() { return myControllers.empty() ? nullptr : myControllers.front().get(); }
+const std::vector<std::unique_ptr<Controller>>& Actor::GetControllers() const { return myControllers; }
 
 
-void Actor::AddSteeringForce(const Tga::Vector2f& aForce) { mySteeringForce += aForce; }
+void Actor::AddSteeringForce(const CommonUtilities::Vector2f& aForce) { mySteeringForce += aForce; }
 
 void Actor::Draw() const
 {

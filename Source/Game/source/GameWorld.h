@@ -1,7 +1,9 @@
 #pragma once
 
 #include <memory>
-#include "ActorManager.h"
+#include <Grid2D.hpp>
+#include "Managers/ActorManager.h"
+#include "FlockingSettings.h"
 
 class ITraversalBounds;
 
@@ -15,6 +17,9 @@ public:
 	void Update(float aTimeDelta);
 	void Render();
 private:
+	void UpdateDebugUI();
 	ActorManager myActorManager;
+	FlockingSettings myFlockingSettings;
+	CommonUtilities::Grid2D myFlockingGrid;
 	std::shared_ptr<ITraversalBounds> myTraversalBounds;
 };

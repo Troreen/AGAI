@@ -1,19 +1,15 @@
 #include "SeekerController.h"
-#include "Actor.h"
+#include "../Actor.h"
+#include "ControllerUtils.h"
 
 SeekerController::SeekerController(const TargetControllerData& aData)
     : TargetController(aData)
 {
 }
 
-Tga::Vector2f SeekerController::GetDesiredVelocity(const Actor& aActor) const
+CommonUtilities::Vector2f SeekerController::GetDesiredVelocity(const Actor& aActor) const
 {
-    Tga::Vector2f toTarget = myTargetPosition - aActor.GetPosition();
-    const float distanceToTarget = toTarget.Length();
-    if (distanceToTarget <= 0.0001f)
-        return {};
-
-    return (toTarget / distanceToTarget) * aActor.GetMaxSpeed();
+    return ControllerUtils::SeekDesiredVelocity(aActor, myTargetPosition);
 }
 
 void SeekerController::Update(Actor& aActor, float)

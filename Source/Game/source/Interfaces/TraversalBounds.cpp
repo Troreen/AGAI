@@ -2,14 +2,14 @@
 
 #include <algorithm>
 
-RectTraversalBounds::RectTraversalBounds(const Tga::Vector2f& aMin, const Tga::Vector2f& aMax)
+RectTraversalBounds::RectTraversalBounds(const CommonUtilities::Vector2f& aMin, const CommonUtilities::Vector2f& aMax)
     : myMin(aMin)
     , myMax(aMax)
 {
 }
 
-Tga::Vector2f RectTraversalBounds::GetNearestValidPoint(
-    const Tga::Vector2f& aPosition,
+CommonUtilities::Vector2f RectTraversalBounds::GetNearestValidPoint(
+    const CommonUtilities::Vector2f& aPosition,
     float aInset) const
 {
     const float minX = (std::min)(myMin.x + aInset, myMax.x);
@@ -24,12 +24,12 @@ Tga::Vector2f RectTraversalBounds::GetNearestValidPoint(
     };
 }
 
-Tga::Vector2f RectTraversalBounds::GetRecoveryDirection(
-    const Tga::Vector2f& aCurrentPosition,
-    const Tga::Vector2f& aPredictedPosition,
+CommonUtilities::Vector2f RectTraversalBounds::GetRecoveryDirection(
+    const CommonUtilities::Vector2f& aCurrentPosition,
+    const CommonUtilities::Vector2f& aPredictedPosition,
     float aInset) const
 {
-    const Tga::Vector2f nearestValidPoint = GetNearestValidPoint(aPredictedPosition, aInset);
+    const CommonUtilities::Vector2f nearestValidPoint = GetNearestValidPoint(aPredictedPosition, aInset);
 
     if ((nearestValidPoint - aPredictedPosition).LengthSqr() <= 0.0001f)
         return {};

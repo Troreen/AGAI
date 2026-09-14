@@ -1,5 +1,6 @@
 #include "WanderController.h"
-#include "Actor.h"
+#include "../Actor.h"
+#include "ControllerUtils.h"
 
 #include <algorithm>
 #include <cmath>
@@ -12,19 +13,14 @@ WanderController::WanderController(const WanderControllerData& aData)
     SetWanderControllerData(aData);
 }
 
-Tga::Vector2f WanderController::GetDesiredVelocity(const Actor& aActor) const
+CommonUtilities::Vector2f WanderController::GetDesiredVelocity(const Actor& aActor) const
 {
-    const Tga::Vector2f toWanderTarget = GetWanderTarget() - aActor.GetPosition();
-    const float distance = toWanderTarget.Length();
-    if (distance <= 0.0001f)
-        return {};
-
-    return (toWanderTarget / distance) * aActor.GetMaxSpeed();
+    return ControllerUtils::SeekDesiredVelocity(aActor, GetWanderTarget());
 }
 
 void WanderController::Update(Actor& aActor, float aDeltaTime)
 {
-    Tga::Vector2f forward = aActor.GetVelocity();
+    CommonUtilities::Vector2f forward = aActor.GetVelocity();
     if (forward.LengthSqr() <= 0.0001f)
         forward = { 1.f, 0.f };
     else
@@ -41,9 +37,9 @@ void WanderController::Update(Actor& aActor, float aDeltaTime)
     myWanderCircleCenter = aActor.GetPosition() + forward * myWanderData.circleDistance;
 }
 
-Tga::Vector2f WanderController::GetWanderTarget() const
+CommonUtilities::Vector2f WanderController::GetWanderTarget() const
 {
-    return myWanderCircleCenter + Tga::Vector2f(
+    return myWanderCircleCenter + CommonUtilities::Vector2f(
         cosf(myWanderTargetAngle), sinf(myWanderTargetAngle)) * myWanderData.circleRadius;
 }
 
