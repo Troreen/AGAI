@@ -16,31 +16,34 @@ project "Game"
 
 	links {"External", "Application", "Core", "Graphics", "SceneScriptCore"}
 
-	includedirs { dirs.external, dirs.application, dirs.core, dirs.graphics,dirs.scene_script_core }
+	includedirs { dirs.external, dirs.application, dirs.core, dirs.graphics, dirs.scene_script_core, dirs.common_utilities_include }
 
 	files {
 		"source/**.h",
 		"source/**.cpp",
 	}
 
-	libdirs { dirs.lib, dirs.dependencies }
+	libdirs { dirs.lib, dirs.dependencies, dirs.common_utilities_lib }
 
 	verify_or_create_settings("Game")
 	 
 	filter "configurations:Debug"
 		defines {"_DEBUG"}
+		links {"CommonUtilities-d"}
 		runtime "Debug"
 		symbols "on"
 		files {"tools/**"}
 		includedirs {"tools/"}
 	filter "configurations:Release"
 		defines "_RELEASE"
+		links {"CommonUtilities"}
 		runtime "Release"
 		optimize "on"
 		files {"tools/**"}
 		includedirs {"tools/"}
 	filter "configurations:Retail"
 		defines "_RETAIL"
+		links {"CommonUtilities"}
 		runtime "Release"
 		optimize "on"
 

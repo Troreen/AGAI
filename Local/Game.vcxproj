@@ -77,7 +77,7 @@
       <WarningLevel>Level4</WarningLevel>
       <TreatWarningAsError>true</TreatWarningAsError>
       <PreprocessorDefinitions>TGE_PROJECT_SETTINGS_FILE="Game.json";_DEBUG;WIN32;_LIB;TGE_SYSTEM_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Source\External;..\Source\Application;..\Source\Core;..\Source\Graphics;..\Source\SceneScriptCore;..\Source\Game\tools;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Source\External;..\Source\Application;..\Source\Core;..\Source\Graphics;..\Source\SceneScriptCore;..\CommonUtilities\include;..\Source\Game\tools;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <MinimalRebuild>false</MinimalRebuild>
@@ -92,7 +92,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>..\Lib;..\Dependencies;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>CommonUtilities-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\Lib;..\Dependencies;..\CommonUtilities\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -101,7 +102,7 @@
       <WarningLevel>Level4</WarningLevel>
       <TreatWarningAsError>true</TreatWarningAsError>
       <PreprocessorDefinitions>TGE_PROJECT_SETTINGS_FILE="Game.json";_RELEASE;WIN32;_LIB;TGE_SYSTEM_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Source\External;..\Source\Application;..\Source\Core;..\Source\Graphics;..\Source\SceneScriptCore;..\Source\Game\tools;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Source\External;..\Source\Application;..\Source\Core;..\Source\Graphics;..\Source\SceneScriptCore;..\CommonUtilities\include;..\Source\Game\tools;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -121,7 +122,8 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>..\Lib;..\Dependencies;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>CommonUtilities.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\Lib;..\Dependencies;..\CommonUtilities\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Retail|x64'">
@@ -130,7 +132,7 @@
       <WarningLevel>Level4</WarningLevel>
       <TreatWarningAsError>true</TreatWarningAsError>
       <PreprocessorDefinitions>TGE_PROJECT_SETTINGS_FILE="Game.json";_RETAIL;WIN32;_LIB;TGE_SYSTEM_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\Source\External;..\Source\Application;..\Source\Core;..\Source\Graphics;..\Source\SceneScriptCore;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Source\External;..\Source\Application;..\Source\Core;..\Source\Graphics;..\Source\SceneScriptCore;..\CommonUtilities\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -150,15 +152,16 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalLibraryDirectories>..\Lib;..\Dependencies;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>CommonUtilities.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\Lib;..\Dependencies;..\CommonUtilities\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\Source\Game\source\Actor.h" />
     <ClInclude Include="..\Source\Game\source\ActorManager.h" />
+    <ClInclude Include="..\Source\Game\source\ArriveController.h" />
     <ClInclude Include="..\Source\Game\source\Boid.h" />
     <ClInclude Include="..\Source\Game\source\BoidDebugRenderer.h" />
-    <ClInclude Include="..\Source\Game\source\ArriveController.h" />
     <ClInclude Include="..\Source\Game\source\Controller.h" />
     <ClInclude Include="..\Source\Game\source\GameWorld.h" />
     <ClInclude Include="..\Source\Game\source\Go.h" />
@@ -170,9 +173,9 @@
   <ItemGroup>
     <ClCompile Include="..\Source\Game\source\Actor.cpp" />
     <ClCompile Include="..\Source\Game\source\ActorManager.cpp" />
+    <ClCompile Include="..\Source\Game\source\ArriveController.cpp" />
     <ClCompile Include="..\Source\Game\source\Boid.cpp" />
     <ClCompile Include="..\Source\Game\source\BoidDebugRenderer.cpp" />
-    <ClCompile Include="..\Source\Game\source\ArriveController.cpp" />
     <ClCompile Include="..\Source\Game\source\Controller.cpp" />
     <ClCompile Include="..\Source\Game\source\GameWorld.cpp" />
     <ClCompile Include="..\Source\Game\source\Go.cpp" />
