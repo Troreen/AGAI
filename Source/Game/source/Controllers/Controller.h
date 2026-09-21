@@ -2,6 +2,7 @@
 
 #include <Vector2.hpp>
 #include <memory>
+#include <span>
 #include <random>
 
 class Actor;
@@ -17,8 +18,8 @@ struct ControllerData
     float boundaryLookAhead = 0.75f;
     // Extra gap kept between the actor's edge and traversal bounds.
     float boundaryClearance = 20.f;
-    // Enables the shared traversal-bounds behavior for this controller.
-    bool useContainment = true;
+    // Opt in to steering back inside traversal bounds. Off unless explicitly enabled.
+    bool useContainment = false;
 };
 
 struct TargetControllerData : ControllerData
@@ -55,12 +56,15 @@ class Controller
 {
 public:
     explicit Controller(const ControllerData& aData = {});
-    virtual ~Controller() = default;
-    virtual CommonUtilities::Vector2f GetDesiredVelocity(const Actor&) const { return {}; }
-    virtual CommonUtilities::Vector2f GetSteeringForce(const Actor& aActor) const;
+    virtual ~Controller();
+    virtual CommonUtilities::Vector2f GetDesiredVelocity(const Actor& aActor) const;
+    // Non-flocking controllers continue to use the single-actor overload.
+    virtual CommonUtilities::Vector2f GetDesiredVelocity(const Actor& aActor, std::span<const Actor* const> aNeighbours) const;
+    virtual bool NeedsNeighbours() const;
+    virtual CommonUtilities::Vector2f GetSteeringForce(const Actor& aActor, std::span<const Actor* const> aNeighbours = {}) const;
     virtual float GetBehaviorWeight() const;
-    virtual void Update(Actor&, float) {}
-    virtual ControllerDebugInfo GetDebugInfo() const { return {}; }
+    virtual void Update(Actor& aActor, float aDeltaTime);
+    virtual ControllerDebugInfo GetDebugInfo() const;
 
     ContainmentDebugInfo GetContainmentDebugInfo(const Actor& aActor) const;
 

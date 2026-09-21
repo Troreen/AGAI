@@ -8,21 +8,26 @@ CohesionController::CohesionController(const FlockingSettings& aSettings)
 {
 }
 
-CommonUtilities::Vector2f CohesionController::GetDesiredVelocity(const Actor& aActor) const
+CommonUtilities::Vector2f CohesionController::GetDesiredVelocity(const Actor& aActor, std::span<const Actor* const> aNeighbours) const
 {
-    const std::vector<const Actor*>& neighbours = aActor.GetNeighbours();
-    if (neighbours.empty())
+    if (aNeighbours.empty())
     {
-        return {};
+        // No neighbours means no cohesion force, rather than a request to stop.
+        return aActor.GetVelocity();
     }
 
     CommonUtilities::Vector2f target = {};
-    for (const Actor* neighbour : neighbours)
+    for (const Actor* neighbour : aNeighbours)
     {
         target += neighbour->GetPosition();
     }
-    target /= static_cast<float>(neighbours.size());
+    target /= static_cast<float>(aNeighbours.size());
     return ControllerUtils::SeekDesiredVelocity(aActor, target);
 }
 
 float CohesionController::GetBehaviorWeight() const { return mySettings.cohesionWeight; }
+
+bool CohesionController::NeedsNeighbours() const
+{
+    return true;
+}

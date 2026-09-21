@@ -7,21 +7,26 @@ AlignmentController::AlignmentController(const FlockingSettings& aSettings)
 {
 }
 
-CommonUtilities::Vector2f AlignmentController::GetDesiredVelocity(const Actor& aActor) const
+CommonUtilities::Vector2f AlignmentController::GetDesiredVelocity(const Actor& aActor, std::span<const Actor* const> aNeighbours) const
 {
-    const std::vector<const Actor*>& neighbours = aActor.GetNeighbours();
-    if (neighbours.empty())
+    if (aNeighbours.empty())
     {
-        return {};
+        // No neighbours means no alignment force, rather than a request to stop.
+        return aActor.GetVelocity();
     }
 
     CommonUtilities::Vector2f averageVelocity = {};
-    for (const Actor* neighbour : neighbours)
+    for (const Actor* neighbour : aNeighbours)
     {
         averageVelocity += neighbour->GetVelocity();
     }
 
-    return averageVelocity / static_cast<float>(neighbours.size());
+    return averageVelocity / static_cast<float>(aNeighbours.size());
 }
 
 float AlignmentController::GetBehaviorWeight() const { return mySettings.alignmentWeight; }
+
+bool AlignmentController::NeedsNeighbours() const
+{
+    return true;
+}

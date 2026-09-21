@@ -2,6 +2,18 @@
 
 #include <algorithm>
 
+ITraversalBounds::~ITraversalBounds() = default;
+
+const CommonUtilities::Vector2f& RectTraversalBounds::GetMin() const
+{
+    return myMin;
+}
+
+const CommonUtilities::Vector2f& RectTraversalBounds::GetMax() const
+{
+    return myMax;
+}
+
 RectTraversalBounds::RectTraversalBounds(const CommonUtilities::Vector2f& aMin, const CommonUtilities::Vector2f& aMax)
     : myMin(aMin)
     , myMax(aMax)

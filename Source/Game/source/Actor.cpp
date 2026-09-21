@@ -16,6 +16,8 @@ Actor::Actor()
 {
 }
 
+Actor::~Actor() = default;
+
 void Actor::SetTexture(const char* aTexturePath)
 {
 	mySharedData.texture = 
@@ -50,22 +52,31 @@ void Actor::AddController(std::unique_ptr<Controller> aController)
     }
 }
 
-void Actor::SetNeighbours(std::vector<const Actor*> aNeighbours)
+bool Actor::NeedsNeighbours() const
 {
-    myNeighbours = std::move(aNeighbours);
+    for (const auto& controller : myControllers)
+    {
+        if (controller->NeedsNeighbours())
+            return true;
+    }
+    return false;
 }
 
 void Actor::Update(float aDeltaTime)
+{
+    CalculateSteering(aDeltaTime);
+    UpdateMovement(aDeltaTime);
+}
+
+void Actor::CalculateSteering(float aDeltaTime, std::span<const Actor* const> aNeighbours)
 {
     CommonUtilities::Vector2f totalSteering = {};
     for (const std::unique_ptr<Controller>& controller : myControllers)
     {
         controller->Update(*this, aDeltaTime);
-        totalSteering += controller->GetSteeringForce(*this);
+        totalSteering += controller->GetSteeringForce(*this, aNeighbours);
     }
     mySteeringForce = totalSteering;
-    UpdateMovement(aDeltaTime);
-    mySpriteInstance.position = myPosition.ToTga();
 }
 
 void Actor::UpdateMovement(float aDeltaTime)
@@ -89,12 +100,12 @@ void Actor::UpdateMovement(float aDeltaTime)
 
 	myRotation = atan2f(myVelocity.y, myVelocity.x);
 	mySpriteInstance.rotation = myRotation;
+	mySpriteInstance.position = myPosition.ToTga();
 	mySteeringForce = {};
 }
 
 const CommonUtilities::Vector2f& Actor::GetPosition() const { return myPosition; }
 const CommonUtilities::Vector2f& Actor::GetVelocity() const { return myVelocity; }
-const std::vector<const Actor*>& Actor::GetNeighbours() const { return myNeighbours; }
 const CommonUtilities::Vector2f& Actor::GetSteeringForce() const { return mySteeringForce; }
 const CommonUtilities::Vector2f& Actor::GetPreviousSteeringForce() const { return myPreviousSteeringForce; }
 

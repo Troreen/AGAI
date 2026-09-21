@@ -8,6 +8,7 @@
 #include <Vector2.hpp>
 #include <memory>
 #include <vector>
+#include <span>
 class Controller;
 
 
@@ -15,18 +16,19 @@ class Actor
 {
 public:
     Actor();
-    virtual ~Actor() = default;
+    virtual ~Actor();
 
     virtual void Init(const CommonUtilities::Vector2f& aPosition, const char* aSpritePath);
     void Update(float aDeltaTime);
     void UpdateMovement(float aDeltaTime);
     void SetController(std::unique_ptr<Controller> aController);
     void AddController(std::unique_ptr<Controller> aController);
-    void SetNeighbours(std::vector<const Actor*> aNeighbours);
+    // The neighbour view is used only during this call; the actor never stores it.
+    void CalculateSteering(float aDeltaTime, std::span<const Actor* const> aNeighbours = {});
+    bool NeedsNeighbours() const;
     virtual void Draw() const;
     const CommonUtilities::Vector2f& GetPosition() const;
     const CommonUtilities::Vector2f& GetVelocity() const;
-    const std::vector<const Actor*>& GetNeighbours() const;
 	const CommonUtilities::Vector2f& GetSteeringForce() const;
 	const CommonUtilities::Vector2f& GetPreviousSteeringForce() const;
 
@@ -59,7 +61,6 @@ protected:
 private:
 
     std::vector<std::unique_ptr<Controller>> myControllers;
-    std::vector<const Actor*> myNeighbours; // create list on stack in gameworld and preallocate memory for it so creaete/destor/pushback is cheap. you can do it thrugh a function in gameworld and none neds to own the list essentially. 
     CommonUtilities::Vector2f myPosition;
     CommonUtilities::Vector2f myVelocity;
     CommonUtilities::Vector2f myAcceleration;
@@ -73,7 +74,7 @@ private:
     // Maximum movement speed used by all desired-velocity controllers.
     float myMaxSpeed = 250.f;
     float myRotation = 0.f;
-    // Collision/occupancy radius used to inset traversal bounds.
+    // boid size used by obstacle casts and optional containment; does not resize the sprite.
     float myRadius = 25.f;
 
 };

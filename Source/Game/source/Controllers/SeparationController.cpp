@@ -13,15 +13,15 @@ SeparationController::SeparationController(const FlockingSettings& aSettings)
 {
 }
 
-CommonUtilities::Vector2f SeparationController::GetDesiredVelocity(const Actor& aActor) const
+CommonUtilities::Vector2f SeparationController::GetDesiredVelocity(const Actor& aActor, std::span<const Actor* const> aNeighbours) const
 {
     if (mySettings.avoidanceRadius <= 0.f)
     {
-        return {};
+        return aActor.GetVelocity();
     }
 
     CommonUtilities::Vector2f away = {};
-    for (const Actor* neighbour : aActor.GetNeighbours())
+    for (const Actor* neighbour : aNeighbours)
     {
         const CommonUtilities::Vector2f offset = aActor.GetPosition() - neighbour->GetPosition();
         const float distanceSqr = offset.LengthSqr();
@@ -38,9 +38,15 @@ CommonUtilities::Vector2f SeparationController::GetDesiredVelocity(const Actor& 
 
     if (away.LengthSqr() <= zeroDistanceSqr)
     {
-        return {};
+        // Nothing to avoid: preserve motion so this controller contributes zero force.
+        return aActor.GetVelocity();
     }
     return ControllerUtils::FleeDesiredVelocity(aActor, aActor.GetPosition() - away);
 }
 
 float SeparationController::GetBehaviorWeight() const { return mySettings.separationWeight; }
+
+bool SeparationController::NeedsNeighbours() const
+{
+    return true;
+}

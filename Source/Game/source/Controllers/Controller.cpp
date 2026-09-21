@@ -13,10 +13,36 @@ Controller::Controller(const ControllerData& aData)
 {
 }
 
-CommonUtilities::Vector2f Controller::GetSteeringForce(const Actor& aActor) const
+Controller::~Controller() = default;
+
+CommonUtilities::Vector2f Controller::GetDesiredVelocity(const Actor&) const
+{
+    return {};
+}
+
+CommonUtilities::Vector2f Controller::GetDesiredVelocity(const Actor& aActor, std::span<const Actor* const>) const
+{
+    return GetDesiredVelocity(aActor);
+}
+
+bool Controller::NeedsNeighbours() const
+{
+    return false;
+}
+
+void Controller::Update(Actor&, float)
+{
+}
+
+ControllerDebugInfo Controller::GetDebugInfo() const
+{
+    return {};
+}
+
+CommonUtilities::Vector2f Controller::GetSteeringForce(const Actor& aActor, std::span<const Actor* const> aNeighbours) const
 {
     const CommonUtilities::Vector2f primaryForce =
-        ControllerUtils::SteerTowards(aActor, GetDesiredVelocity(aActor)) * GetBehaviorWeight();
+        ControllerUtils::SteerTowards(aActor, GetDesiredVelocity(aActor, aNeighbours)) * GetBehaviorWeight();
 
     bool isOutsideBounds = false;
     const CommonUtilities::Vector2f containmentForce = GetContainmentForce(aActor, isOutsideBounds);
@@ -68,7 +94,7 @@ CommonUtilities::Vector2f Controller::GetContainmentForce(const Actor& aActor, b
 
 CommonUtilities::Vector2f Controller::GetNearestValidPosition(const Actor& aActor, const CommonUtilities::Vector2f& aPosition) const
 {
-    if (!myTraversalBounds)
+    if (!myData.useContainment || !myTraversalBounds)
         return aPosition;
 
     return myTraversalBounds->GetNearestValidPoint(

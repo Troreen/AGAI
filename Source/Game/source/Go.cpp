@@ -80,4 +80,3 @@ void Go()
 	Tga::GraphicsEngine::GetInstance()->Shutdown();
 	Tga::Application::GetInstance()->Shutdown();
 }
-

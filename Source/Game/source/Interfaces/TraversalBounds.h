@@ -7,7 +7,7 @@
 class ITraversalBounds
 {
 public:
-    virtual ~ITraversalBounds() = default;
+    virtual ~ITraversalBounds();
 
     // Projects a point into navigable space after applying the supplied inset.
     virtual CommonUtilities::Vector2f GetNearestValidPoint(
@@ -26,6 +26,8 @@ class RectTraversalBounds final : public ITraversalBounds
 {
 public:
     RectTraversalBounds(const CommonUtilities::Vector2f& aMin, const CommonUtilities::Vector2f& aMax);
+    const CommonUtilities::Vector2f& GetMin() const;
+    const CommonUtilities::Vector2f& GetMax() const;
 
     CommonUtilities::Vector2f GetNearestValidPoint(
         const CommonUtilities::Vector2f& aPosition,
