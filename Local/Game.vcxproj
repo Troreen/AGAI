@@ -158,6 +158,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\Source\Game\source\Actor.h" />
+    <ClInclude Include="..\Source\Game\source\Event.h" />
+    <ClInclude Include="..\Source\Game\source\EventManager.h" />
     <ClInclude Include="..\Source\Game\source\Controllers\AlignmentController.h" />
     <ClInclude Include="..\Source\Game\source\Controllers\ArriveController.h" />
     <ClInclude Include="..\Source\Game\source\Controllers\CohesionController.h" />
