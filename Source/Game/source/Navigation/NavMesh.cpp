@@ -1,6 +1,6 @@
 #include "NavMesh.h"
 
-#include <AStar.hpp>
+#include <Pathfinding/AStar.hpp>
 #include <TGAFBXImporter/source/Importer.h>
 #include <algorithm>
 #include <cmath>
@@ -49,7 +49,7 @@ bool Contains(const NavTriangle& aTriangle, const Vector2f& aPoint)
 }
 }
 
-#include "../NavMesh_LoadFbx.h"
+#include "NavMesh_LoadFbx.h"
 
 bool NavMesh::GetPortalBetweenNodes(int aFrom, int aTo, NavPortal& aPortal) const
 {
@@ -209,7 +209,7 @@ NavigationPath NavMesh::FindPath(const Vector2f& aStart, const Vector2f& aTarget
     return path;
 }
 
-#include "../NavMesh_PerformFunnelling.h"
+#include "NavMesh_PerformFunnelling.h"
 
 float NavMesh::TraversableFraction(const Vector2f& aStart, const Vector2f& anEnd) const
 {

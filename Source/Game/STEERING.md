@@ -11,7 +11,12 @@ Each active controller has two parts:
 
 While the actor is close to leaving the level, containment is added to the primary force. Once the actor is already outside valid space, containment takes priority until it is back inside. This prevents normal behavior from fighting recovery.
 
-The current U04 scene gives each actor one controller: mouse-target Arrive for the player and smoothed path following for the companion. Navmesh movement constraints are applied only to the companion after Actor integration. The earlier controllers and their settings, avoidance helpers, and bounds implementations are preserved in `source/Controllers` for reuse. Controllers only depend on `ITraversalBounds`, so a larger project can provide another implementation for polygons, tile maps, or a navmesh.
+The default U04 scene gives each actor one controller: mouse-target Arrive for the player and smoothed path following for the companion. Navmesh movement constraints are applied only to the companion after Actor integration. The earlier controllers and their settings, avoidance helpers, and bounds implementations are preserved in `source/Controllers` for reuse. Controllers only depend on `ITraversalBounds`, so a larger project can provide another implementation for polygons, tile maps, or a navmesh.
+
+Actors can own several controllers. `SetController` replaces them with one;
+`AddController` adds another. Boids first calculate steering for every actor
+using the same frame of neighbours, then move every actor. The other worlds
+use `Actor::Update` to decide and move together.
 
 ## Config data
 
@@ -64,7 +69,7 @@ Seek and arrive random targets are passed through `GetNearestValidPoint` using t
 
 ## Debug drawing
 
-The current scene draws hacking ranges and controller target lines in `GameWorld::DrawDebug`. The unused steering renderer and its stored previous-force data have been removed.
+`GameWorld01_Controllers` uses `SteeringDebugRenderer` for targets, wander circles, containment, and the previous steering force. `GameWorld02_Boids` draws flocking neighbours and obstacle rays. `GameWorld03_WorldInterface` draws hacking ranges and guard targets; `GameWorld04_NavMesh` draws the mesh and paths. Select the assignment at the top of `Go.cpp`.
 
 ## Adding a bounds type
 

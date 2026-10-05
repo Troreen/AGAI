@@ -20,8 +20,8 @@ We kept the same basic approach and replaced those dependencies with standard C+
 | `HD_EventManager` | `EventManager` | Remove the teacher's library prefix |
 | `std::bind` around a lambda | Just the lambda | The wrapper was unnecessary |
 
-The reusable headers live in `CommonUtilities/include/Event.hpp` and
-`CommonUtilities/include/EventManager.hpp`. They contain their implementations,
+The reusable headers live in `CommonUtilities/include/Events/Event.hpp` and
+`CommonUtilities/include/Events/EventManager.hpp`. They contain their implementations,
 so there is no additional library to link. Manager types use the `CommonUtilities` namespace.
 
 ## A complete example
@@ -29,7 +29,7 @@ so there is no additional library to link. Manager types use the `CommonUtilitie
 This example is illustrative; it does not add guards or events to the game yet.
 
 ```cpp
-#include <EventManager.hpp>
+#include <Events/EventManager.hpp>
 #include <iostream>
 
 // Generates: Invalid = 0, NoiseHeard = 1, Count = 2.

@@ -1,7 +1,7 @@
 #include "Controller.h"
-#include "../Actor.h"
+#include "../Actors/Actor.h"
 #include "ControllerUtils.h"
-#include "TraversalBounds.h"
+#include "../Interfaces/TraversalBounds.h"
 
 #include <tge/application.h>
 

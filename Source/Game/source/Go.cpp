@@ -1,7 +1,24 @@
-#include "GameWorld.h"
+// Change this number to run another assignment, then rebuild GameMain.
+#define GAME_WORLD_ASSIGNMENT 4 // 1: Controllers, 2: Boids, 3: World Interface, 4: NavMesh
+
+#if GAME_WORLD_ASSIGNMENT == 1
+#include "Worlds/01_Controllers/GameWorld01_Controllers.h"
+using SelectedGameWorld = GameWorld01_Controllers;
+#elif GAME_WORLD_ASSIGNMENT == 2
+#include "Worlds/02_Boids/GameWorld02_Boids.h"
+using SelectedGameWorld = GameWorld02_Boids;
+#elif GAME_WORLD_ASSIGNMENT == 3
+#include "Worlds/03_WorldInterface/GameWorld03_WorldInterface.h"
+using SelectedGameWorld = GameWorld03_WorldInterface;
+#elif GAME_WORLD_ASSIGNMENT == 4
+#include "Worlds/04_NavMesh/GameWorld04_NavMesh.h"
+using SelectedGameWorld = GameWorld04_NavMesh;
+#else
+#error GAME_WORLD_ASSIGNMENT must be 1, 2, 3, or 4.
+#endif
 
 #include <tge/application.h>
-#include <InputHandler.h>
+#include <Input/InputHandler.h>
 #include <tge/log/Log.h>
 #include <tge/scene/Scene.h>
 #include <tge/scene/SceneSerialize.h>
@@ -83,7 +100,7 @@ void Go()
         CommonUtilities::InputHandler input;
         input.SetWindowHandle(*Tga::Application::GetInstance()->GetHWND());
         ourInput = &input;
-        GameWorld gameWorld;
+        SelectedGameWorld gameWorld;
         gameWorld.Init(input);
 
         Tga::Application& application = *Tga::Application::GetInstance();

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <PathfindingTypes.hpp>
-#include <Vector2.hpp>
+#include <Pathfinding/PathfindingTypes.hpp>
+#include <Math/Vector2.hpp>
 #include <array>
 #include <string>
 #include <vector>

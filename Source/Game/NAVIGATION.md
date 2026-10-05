@@ -32,24 +32,28 @@ smoothed route to the nearest point on the navmesh.
    crosses the other, we add the opposite corner as a new apex. After choosing an
    apex, both sides restart at the next usable portal. A route inside one triangle
    goes directly from start to goal. The raw path is never overwritten.
-7. `PathFollowingController` projects a predicted position onto the active path
-   segment and seeks a point farther along it. The existing Arrive helper reduces
-   speed near each corner and the goal. It finishes each necessary corner before
-   taking the next segment, so it does not cut through holes. `Actor` still handles
-   steering forces, acceleration, speed limits, rotation, and rendering.
-8. `GameWorld::Update` checks the companion's complete movement segment after
+7. `PathFollowingController` gives internal funnel corners up to 30 pixels of
+   turning room when both connecting segments remain walkable. The original
+   funnel result stays in `NavigationPath`; the controller owns its follow path.
+   It projects a predicted position onto the active segment and looks 45 pixels
+   ahead, including onto the next segment when the entire shortcut is walkable.
+   It carries velocity through these bends instead of arriving at every point.
+   The existing Arrive helper brakes for the goal and corners that cannot safely
+   be rounded. `Actor` still handles steering forces, acceleration, speed limits,
+   rotation, and rendering. The green debug line shows the actual follow path.
+8. `GameWorld04_NavMesh::Update` checks the companion's complete movement segment after
    Actor integration. Triangle clipping finds how much of that segment is covered
    by the mesh, and movement stops at the first uncovered point. Checking only the
    endpoint would allow a large frame step to jump over a hole. The player gets
    no such restriction.
 
 Navigation constrains the companion's **position/centre**. As discussed in F05,
-the shortest funnel can touch a boundary or corner; the sprite itself can overlap
-that boundary. This assignment does not add radius-based mesh erosion or physics.
+the shortest funnel can touch a boundary or corner. The follower adds turning
+room where possible, but the sprite itself can still overlap that boundary. This assignment does not add radius-based mesh erosion or physics.
 
 ## Files and ownership
 
-`GameWorld` owns the navmesh, path result, and ActorManager. Each Actor owns its
+`GameWorld04_NavMesh` owns the navmesh, path result, and ActorManager. Each Actor owns its
 controller using the project's existing ownership scheme. The companion controller
 borrows the navmesh, which outlives the actors. A path result owns its vectors and
 uses triangle indices, so it holds no pointers into a reloaded mesh.
@@ -105,3 +109,35 @@ The rules come from [the U04 assignment](../../Doc/U04_NavMesh_och_Companion.pdf
 [F05 Navigation](../../Doc/F05_Navigation.pdf) explains the graph, funnel, and
 path-following approach. Reusable events/polling are documented in
 [CommonUtilities](../../CommonUtilities/AI_UTILITIES.md).
+
+## Continuous corner movement check (2026-10-06)
+
+Temporary movement checks used the real NavMesh, Actor integration, and both
+course meshes at 60, 30, and 10 FPS. All 78 reachable routes finished on the mesh.
+Intermediate corner stops dropped from 147 with the previous controller to zero
+with the new controller; boundary corrections dropped from 20 to 10. All 57
+target changes while moving remained walkable and the final targets were reached.
+These are movement checks, not a visual assessment of how the game feels.
+
+`cornerClearance` and `lookAheadDistance` at the top of PathFollowingController.cpp
+are the two tuning values. Clearance moves a bend away from its wall only when
+the incoming and outgoing segments remain valid. Look-ahead starts steering
+onto the next segment early when the connecting segment is valid. Neither
+changes the requested destination, A* search, funnel output, or boundary check.
+
+## Turn-based speed
+
+The follower compares its current movement direction with the direction towards
+its look-ahead target. Turns under roughly 30 degrees keep normal speed. Sharper
+turns progressively reduce desired speed, reaching 65% at 90 degrees or more.
+Speed returns as the companion lines up with its target. Final arrival and tight
+corner braking still apply; the turn multiplier does not introduce another stop.
+
+`gentleTurnDot` and `minimumTurnSpeed` at the top of PathFollowingController.cpp
+control this rule. It changes desired speed only; path generation, facing, mass,
+acceleration settings, and navmesh constraints are unchanged.
+
+Turn-speed checks confirmed 100% desired speed at 0/20 degrees, 85.2% at
+60 degrees, and 65% at 90/180 degrees. All 78 route checks and 57 target
+changes passed again, with no intermediate corner stops or off-mesh movement.
+Debug and Release GameMain builds passed.
