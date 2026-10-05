@@ -16,11 +16,15 @@ CommonUtilities::Vector2f ObstacleAvoidanceController::GetSteeringForce(const Ac
     std::span<const Actor* const>) const
 {
     if (mySettings.weight <= 0.f)
+    {
         return {};
+    }
     const auto avoidance = EvaluateAvoidance(aActor);
     // A clear forward ray must add no force, including no unwanted braking.
     if (!avoidance.forwardBlocked)
+    {
         return {};
+    }
     // Redirect current motion; avoidance strength controls turning, not a boost to maximum speed.
     // If every ray is blocked, brake instead of blindly accelerating into an obstacle.
     const auto desiredVelocity = avoidance.foundClearDirection

@@ -1,7 +1,7 @@
 #include "Controller.h"
 #include "../Actor.h"
 #include "ControllerUtils.h"
-#include "../Interfaces/TraversalBounds.h"
+#include "TraversalBounds.h"
 
 #include <tge/application.h>
 
@@ -47,7 +47,9 @@ CommonUtilities::Vector2f Controller::GetSteeringForce(const Actor& aActor, std:
     bool isOutsideBounds = false;
     const CommonUtilities::Vector2f containmentForce = GetContainmentForce(aActor, isOutsideBounds);
     if (isOutsideBounds)
+    {
         return containmentForce;
+    }
 
     return primaryForce + containmentForce * myData.containmentWeight;
 }
@@ -77,14 +79,18 @@ CommonUtilities::Vector2f Controller::GetContainmentForce(const Actor& aActor, b
 {
     aIsOutsideBounds = false;
     if (!myData.useContainment || !myTraversalBounds)
+    {
         return {};
+    }
 
     const CommonUtilities::Vector2f position = aActor.GetPosition();
     const CommonUtilities::Vector2f predictedPosition = position + aActor.GetVelocity() * myData.boundaryLookAhead;
     const float inset = aActor.GetRadius() + myData.boundaryClearance;
     const CommonUtilities::Vector2f recovery = myTraversalBounds->GetRecoveryDirection(position, predictedPosition, inset);
     if (recovery.LengthSqr() <= 0.0001f)
+    {
         return {};
+    }
 
     // A current-position query distinguishes a gentle predictive correction
     // from an emergency recovery when the actor has already escaped.
@@ -95,7 +101,9 @@ CommonUtilities::Vector2f Controller::GetContainmentForce(const Actor& aActor, b
 CommonUtilities::Vector2f Controller::GetNearestValidPosition(const Actor& aActor, const CommonUtilities::Vector2f& aPosition) const
 {
     if (!myData.useContainment || !myTraversalBounds)
+    {
         return aPosition;
+    }
 
     return myTraversalBounds->GetNearestValidPoint(
         aPosition, aActor.GetRadius() + myData.boundaryClearance);
@@ -107,7 +115,9 @@ ContainmentDebugInfo Controller::GetContainmentDebugInfo(const Actor& aActor) co
     info.actorRadius = aActor.GetRadius();
     info.boundaryClearance = myData.boundaryClearance;
     if (!myData.useContainment || !myTraversalBounds)
+    {
         return info;
+    }
 
     info.isEnabled = true;
     info.predictedPosition = aActor.GetPosition() + aActor.GetVelocity() * myData.boundaryLookAhead;
@@ -117,6 +127,7 @@ ContainmentDebugInfo Controller::GetContainmentDebugInfo(const Actor& aActor) co
     return info;
 }
 
+// --- Earlier assignment: choose and remember a random destination ---
 TargetController::TargetController(const TargetControllerData& aData)
     : Controller(aData)
     , myTargetData(aData)
@@ -169,6 +180,3 @@ CommonUtilities::Vector2f TargetController::GenerateRandomTarget()
     std::uniform_real_distribution<float> yDistribution(0.f, static_cast<float>(resolution.y));
     return { xDistribution(myRandomGenerator), yDistribution(myRandomGenerator) };
 }
-
-
-

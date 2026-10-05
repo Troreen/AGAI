@@ -1,14 +1,12 @@
 #pragma once
 
-#include <tge/sprite/sprite.h>
-#include <tge/graphics/GraphicsEngine.h>
-#include <tge/drawers/SpriteDrawer.h>
-#include <tge/texture/TextureManager.h>
-#include <tge/application.h>
 #include <Vector2.hpp>
 #include <memory>
-#include <vector>
-#include <span>
+#include <tge/application.h>
+#include <tge/drawers/SpriteDrawer.h>
+#include <tge/graphics/GraphicsEngine.h>
+#include <tge/sprite/sprite.h>
+#include <tge/texture/TextureManager.h>
 class Controller;
 
 
@@ -22,15 +20,10 @@ public:
     void Update(float aDeltaTime);
     void UpdateMovement(float aDeltaTime);
     void SetController(std::unique_ptr<Controller> aController);
-    void AddController(std::unique_ptr<Controller> aController);
-    // The neighbour view is used only during this call; the actor never stores it.
-    void CalculateSteering(float aDeltaTime, std::span<const Actor* const> aNeighbours = {});
-    bool NeedsNeighbours() const;
     virtual void Draw() const;
     const CommonUtilities::Vector2f& GetPosition() const;
     const CommonUtilities::Vector2f& GetVelocity() const;
-	const CommonUtilities::Vector2f& GetSteeringForce() const;
-	const CommonUtilities::Vector2f& GetPreviousSteeringForce() const;
+    const CommonUtilities::Vector2f& GetSteeringForce() const;
 
     float GetMaxSpeed() const;
     float GetMaxForce() const;
@@ -41,31 +34,27 @@ public:
     void SetMass(float aValue);
     void SetRadius(float aValue);
     void SetColor(const Tga::Color& aColor);
-    
+    void SetPosition(const CommonUtilities::Vector2f& aPosition);
+    void Stop();
 
-	Tga::Sprite2DInstanceData GetSpriteInstanceData() const;
-	Tga::SpriteSharedData GetSpriteSharedData() const;
+    Tga::Sprite2DInstanceData GetSpriteInstanceData() const;
+    Tga::SpriteSharedData GetSpriteSharedData() const;
     const Controller* GetController() const;
     Controller* GetController();
-    const std::vector<std::unique_ptr<Controller>>& GetControllers() const;
-
-    void AddSteeringForce(const CommonUtilities::Vector2f& aForce);
 
 protected:
     void SetTexture(const char* aTexturePath);
     Tga::Sprite2DInstanceData mySpriteInstance = {};
     Tga::SpriteSharedData mySharedData = {};
-	const char* mySpritePath = nullptr;
-
+    const char* mySpritePath = nullptr;
 
 private:
-
-    std::vector<std::unique_ptr<Controller>> myControllers;
+    // --- The controller and movement values that belong to this actor ---
+    std::unique_ptr<Controller> myController;
     CommonUtilities::Vector2f myPosition;
     CommonUtilities::Vector2f myVelocity;
     CommonUtilities::Vector2f myAcceleration;
     CommonUtilities::Vector2f mySteeringForce;
-    CommonUtilities::Vector2f myPreviousSteeringForce;
 
     // Maximum steering force accepted each frame; caps turning/acceleration.
     float myMaxForce = 500.f;
@@ -74,7 +63,6 @@ private:
     // Maximum movement speed used by all desired-velocity controllers.
     float myMaxSpeed = 250.f;
     float myRotation = 0.f;
-    // boid size used by obstacle casts and optional containment; does not resize the sprite.
+    // Actor size used by the preserved avoidance and containment controllers.
     float myRadius = 25.f;
-
 };

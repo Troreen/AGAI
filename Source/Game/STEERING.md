@@ -11,7 +11,7 @@ Each active controller has two parts:
 
 While the actor is close to leaving the level, containment is added to the primary force. Once the actor is already outside valid space, containment takes priority until it is back inside. This prevents normal behavior from fighting recovery.
 
-`GameWorld` currently supplies `RectTraversalBounds`, based on the render area. Controllers only depend on `ITraversalBounds`, so a larger project can provide another implementation for polygons, tile maps, or a navmesh.
+The current world-interfacing scene gives each actor one controller and does not set up flocking, obstacles, or traversal bounds. The earlier controllers and their settings, avoidance helpers, and bounds implementations are preserved in `source/Controllers` for reuse. Controllers only depend on `ITraversalBounds`, so a larger project can provide another implementation for polygons, tile maps, or a navmesh.
 
 ## Config data
 
@@ -64,17 +64,7 @@ Seek and arrive random targets are passed through `GetNearestValidPoint` using t
 
 ## Debug drawing
 
-In non-retail builds, `SteeringDebugRenderer` displays:
-
-| Colour | Meaning |
-| --- | --- |
-| White circle | Physical actor radius. |
-| Grey circle | Actor radius plus configured boundary clearance. |
-| Cyan arrow and circle | Look-ahead position when it remains valid. |
-| Orange arrow and circle | Look-ahead position that requires containment correction. |
-| Magenta circle and arrow | Nearest valid point and recovery direction. |
-| Green arrow | Desired velocity. |
-| Red arrow | Previous steering force actually applied. |
+The current scene draws hacking ranges and controller target lines in `GameWorld::DrawDebug`. The unused steering renderer and its stored previous-force data have been removed.
 
 ## Adding a bounds type
 

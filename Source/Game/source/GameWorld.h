@@ -1,51 +1,75 @@
 #pragma once
 
-#include <memory>
-#include <span>
-#include <Grid2D.hpp>
+#include "AIEventManager.h"
+#include "AIPollingStation.h"
+#include "Actor.h"
 #include "Managers/ActorManager.h"
-#include "FlockingSettings.h"
-#include "ObstacleAvoidance.h"
 
-class RectTraversalBounds;
+#include <array>
+#include <cstdint>
+#include <memory>
 
+namespace CommonUtilities
+{
+class InputHandler;
+}
+
+namespace Tga
+{
+class Text;
+} // namespace Tga
+
+// GameWorld sets up the scene and keeps track of what is happening in it.
 class GameWorld
 {
 public:
     GameWorld();
     ~GameWorld();
 
-    void Init();
+    // --- Start the scene, update it, and draw it ---
+    void Init(const CommonUtilities::InputHandler& aInput);
     void Update(float aTimeDelta);
     void Render();
-    // Fill caller-owned scratch storage; the returned view lasts until that storage is reused.
-    // Query before movement, while actor positions still match the grid.
-    std::span<const Actor* const> FindNeighbours(const Actor& aActor, float aRadius, std::span<const Actor*> aStorage) const;
-private:
-    void UpdateDebugUI();
-    void RebuildFlockingGrid();
-    void DrawFlockingDebug();
-    void DrawObstacleDebug();
 
-    // Number of boid to spawn; also reserves enough stack space for every possible neighbour.
-    static constexpr std::size_t actorCount = 100;
-    // Show only the red boid's neighbourhood to keep the debug view readable.
-    bool myShowDetectionRadius = false;
-    bool myShowCohesion = false;
-    bool myShowAlignment = false;
-    bool myShowSeparation = false;
-    // Draw the test obstacles and the old containment rectangle independently of ray debugging.
-    bool myShowObstacles = true;
-    bool myShowTraversalBounds = true;
-    bool myShowAvoidanceRays = false;
-    // Show other boid's rays too; otherwise only the red boid is inspected.
-    bool myShowAllAvoidanceRays = false;
-    // Explicitly opt in to the old edge-steering behavior on the wander controllers.
-    bool myUseContainment = false;
-    ObstacleAvoidanceSettings myObstacleSettings;
-    std::vector<CircleObstacle> myObstacles;
+    // --- Information other parts of the game can ask for ---
+    std::uint64_t GetFrameCount() const;
+    const Actor* GetCurrentlyHackedComputer() const;
+    const Actor* GetLatestAttemptedComputer() const;
+    AIPollingStation& GetPollingStation();
+    AIEventManager& GetEventManager();
+    Actor& GetPlayer();
+    Actor& GetGuard(std::size_t aIndex);
+    const Actor& GetComputer(std::size_t aIndex) const;
+    unsigned int GetStartedEventCount() const;
+    unsigned int GetStoppedEventCount() const;
+    float GetHackingDistance() const;
+
+private:
+    void UpdateHacking();
+    void UpdateDebugUI();
+    void DrawDebug();
+    int GetComputerNumber(const Actor* aComputer) const;
+
+    // --- Remember what the player is doing ---
+    // A null computer pointer means there is no computer to report.
+    std::uint64_t myFrameCount = 0;
+    const Actor* myCurrentlyHackedComputer = nullptr;
+    const Actor* myLatestAttemptedComputer = nullptr;
+    float myHackingDistance = 75.f;
+    unsigned int myStartedEventCount = 0;
+    unsigned int myStoppedEventCount = 0;
+    // --- Debug display and optional console messages ---
+    bool myShowHackingDistance = true;
+    bool myShowTargets = true;
+    bool myLogEvents = false;
+    bool myLogPolling = false;
+
+    // --- The objects that belong to this world ---
+    // C++ destroys these from bottom to top. Guards must stop listening before
+    // their event manager and computers are destroyed.
+    AIEventManager myEvents;
+    AIPollingStation myPollingStation;
+    std::array<Actor, 3> myComputers;
     ActorManager myActorManager;
-    FlockingSettings myFlockingSettings;
-    CommonUtilities::Grid2D myFlockingGrid;
-    std::shared_ptr<RectTraversalBounds> myTraversalBounds;
+    std::array<std::unique_ptr<Tga::Text>, 8> myLabels;
 };

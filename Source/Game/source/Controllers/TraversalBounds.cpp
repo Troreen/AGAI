@@ -44,7 +44,9 @@ CommonUtilities::Vector2f RectTraversalBounds::GetRecoveryDirection(
     const CommonUtilities::Vector2f nearestValidPoint = GetNearestValidPoint(aPredictedPosition, aInset);
 
     if ((nearestValidPoint - aPredictedPosition).LengthSqr() <= 0.0001f)
+    {
         return {};
+    }
 
     // Aim from the current position, so an actor already outside gets a clear
     // inward direction instead of merely cancelling its forward velocity.

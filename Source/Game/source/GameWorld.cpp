@@ -1,391 +1,320 @@
 #include "GameWorld.h"
 
-#include <tge/graphics/GraphicsEngine.h>
-#include <tge/drawers/SpriteDrawer.h>
-#include <tge/texture/TextureManager.h>
-#include <tge/drawers/DebugDrawer.h>
+#include "Controllers/PlayerController.h"
+#include "Controllers/WorldInterfacingControllers.h"
+
 #include <tge/application.h>
-
-#include "Actor.h"
-#include "Controllers/WanderController.h"
-#include "Controllers/AlignmentController.h"
-#include "Controllers/CohesionController.h"
-#include "Controllers/SeparationController.h"
-#include "Controllers/ObstacleAvoidanceController.h"
-#include "Interfaces/TraversalBounds.h"
-
+#include <tge/drawers/DebugDrawer.h>
+#include <tge/graphics/GraphicsEngine.h>
+#include <tge/text/text.h>
+#ifndef _RETAIL
 #include <imgui/imgui.h>
-#include <string>
-#include <random>
-#include <array>
-#include <algorithm>
-#include <stdexcept>
+#endif
 
-GameWorld::GameWorld()
+#include <cassert>
+#include <cstdio>
+
+namespace
+{
+const char* guardNames[4] = {"Smart / Poll", "Smart / Event", "Stupid / Poll", "Stupid / Event"};
+}
+
+GameWorld::GameWorld() : myPollingStation(*this)
 {
 }
 
-GameWorld::~GameWorld()
+GameWorld::~GameWorld() = default;
+
+// --- Set up the playing field ---
+// Create the computers, player, guards, and their name labels.
+void GameWorld::Init(const CommonUtilities::InputHandler& aInput)
 {
-}
+    assert(myActorManager.GetActorCount() == 0);
+    const Tga::Vector2ui size = Tga::Application::GetInstance()->GetRenderSize();
+    const CommonUtilities::Vector2f resolution = {static_cast<float>(size.x), static_cast<float>(size.y)};
 
-void GameWorld::Init()
-{
-    const Tga::Vector2ui intResolution = Tga::Application::GetInstance()->GetRenderSize();
-    const CommonUtilities::Vector2f resolution = {
-        static_cast<float>(intResolution.x), static_cast<float>(intResolution.y) };
-
-    // Use 90% of each screen dimension, leaving a 5% margin on every side.
-    myTraversalBounds = std::make_shared<RectTraversalBounds>(resolution * 0.05f, resolution * 0.95f);
-    // Small circular test obstacles. Positions and radii use the same units as the boid.
-    const float obstacleRadius = resolution.y * 0.045f;
-    myObstacles = {
-        { { resolution.x * 0.1f, resolution.y * 0.5f }, obstacleRadius },
-        { { resolution.x * 0.6f, resolution.y * 0.4f }, obstacleRadius },
-        { { resolution.x * 0.6f, resolution.y * 0.65f }, obstacleRadius }
-    };
-    const float cellSize = myFlockingSettings.perceptionRadius;
-    const int gridWidth = static_cast<int>(std::ceil(resolution.x / cellSize));
-    const int gridHeight = static_cast<int>(std::ceil(resolution.y / cellSize));
-    myFlockingGrid.Init({}, cellSize, gridWidth, gridHeight);
-
-    std::mt19937 randomGenerator(7u);
-    // Start boid inside the walls with the same body clearance used by avoidance casts.
-    constexpr float boidRadius = 6.f;
-    const float wallClearance = boidRadius + myObstacleSettings.clearance;
-    std::uniform_real_distribution<float> randomX(
-        myTraversalBounds->GetMin().x + wallClearance, myTraversalBounds->GetMax().x - wallClearance);
-    std::uniform_real_distribution<float> randomY(
-        myTraversalBounds->GetMin().y + wallClearance, myTraversalBounds->GetMax().y - wallClearance);
-
-    for (std::size_t i = 0; i < actorCount; ++i)
+    // --- Place the three computers ---
+    // Triangle formation, with its bounds centred.
+    const CommonUtilities::Vector2f centre = resolution * 0.5f;
+    const CommonUtilities::Vector2f spread = {resolution.x * 0.2f, resolution.y * 0.25f};
+    const CommonUtilities::Vector2f computerPositions[3] = {{centre.x - spread.x, centre.y - spread.y},
+                                                            {centre.x + spread.x, centre.y},
+                                                            {centre.x - spread.x, centre.y + spread.y}};
+    for (std::size_t index = 0; index < myComputers.size(); ++index)
     {
-        WanderControllerData wanderData;
-        wanderData.randomSeed = static_cast<unsigned int>(i + 1);
-        wanderData.behaviorWeight = 0.35f;
+        myComputers[index].Init(computerPositions[index], "Sprites/computer.png");
+    }
 
-        CommonUtilities::Vector2f spawnPosition;
-        bool overlapsObstacle;
-        do
-        {
-            spawnPosition = { randomX(randomGenerator), randomY(randomGenerator) };
-            overlapsObstacle = false;
-            for (const auto& obstacle : myObstacles)
-            {
-                const float spawnClearance = obstacle.radius + boidRadius + myObstacleSettings.clearance;
-                if (spawnPosition.DistanceSqr(obstacle.position) < spawnClearance * spawnClearance)
-                    overlapsObstacle = true;
-            }
-        } while (overlapsObstacle);
+    // --- Create the mouse-controlled player ---
+    // The controller decides where to go; the Actor handles the actual movement.
+    const CommonUtilities::Vector2f playerPosition = {resolution.x * 0.5f, resolution.y * 0.55f};
+    Actor& player = myActorManager.CreateActor(playerPosition, "Sprites/human.png",
+                                               std::make_unique<PlayerController>(playerPosition, aInput));
+    player.SetMaxSpeed(300.f);
+    player.SetMaxForce(1200.f);
+    player.SetMass(0.15f);
 
-        Actor& actor = myActorManager.CreateActor(
-            spawnPosition,
-            "sprites/CoolFish.png",
-            std::make_unique<WanderController>(wanderData));
-        actor.SetMaxSpeed(2500.f);
-        actor.SetMaxForce(1000.f);
-        actor.SetRadius(boidRadius);
-        if (i == 0)
-        {
-            actor.SetColor(Tga::Color(1, 0, 0, 1));
-        }
-        Controller* const wanderController = actor.GetController();
-        wanderController->SetTraversalBounds(myTraversalBounds);
-        actor.AddController(std::make_unique<AlignmentController>(myFlockingSettings));
-        actor.AddController(std::make_unique<CohesionController>(myFlockingSettings));
-        actor.AddController(std::make_unique<SeparationController>(myFlockingSettings));
-        actor.AddController(std::make_unique<ObstacleAvoidanceController>(myObstacleSettings, myObstacles, myTraversalBounds));
+    // --- Create the four guards ---
+    // Each pair follows the same rule, but one asks for information and one gets messages.
+    myActorManager.CreateActor({resolution.x * 0.18f, resolution.y * 0.45f},
+                               "Sprites/robot1.png",
+                               std::make_unique<SmartGuardPollController>(myPollingStation));
+    myActorManager.CreateActor({resolution.x * 0.22f, resolution.y * 0.60f},
+                               "Sprites/robot1.png",
+                               std::make_unique<SmartGuardEventController>(myEvents));
+    myActorManager.CreateActor({resolution.x * 0.70f, resolution.y * 0.78f},
+                               "Sprites/robot2.png",
+                               std::make_unique<StupidGuardPollController>(myPollingStation));
+    myActorManager.CreateActor({resolution.x * 0.80f, resolution.y * 0.82f},
+                               "Sprites/robot2.png",
+                               std::make_unique<StupidGuardEventController>(myEvents));
+
+    // --- Give the guards different colours and matching movement speeds ---
+    const Tga::Color colors[4] = {
+        {0.3f, 1.f, 1.f, 1.f}, {0.65f, 0.75f, 1.f, 1.f}, {1.f, 0.8f, 0.3f, 1.f}, {1.f, 0.4f, 0.4f, 1.f}};
+    for (std::size_t index = 0; index < 4; ++index)
+    {
+        Actor& guard = GetGuard(index);
+        guard.SetMaxSpeed(160.f);
+        guard.SetMaxForce(1200.f);
+        guard.SetMass(0.15f);
+        guard.SetColor(colors[index]);
+    }
+
+    // --- Give everything a name on screen ---
+    const char* labels[8] = {"Player (left-click to move)",
+                             guardNames[0],
+                             guardNames[1],
+                             guardNames[2],
+                             guardNames[3],
+                             "Computer 1",
+                             "Computer 2",
+                             "Computer 3"};
+    for (std::size_t index = 0; index < myLabels.size(); ++index)
+    {
+        myLabels[index] = std::make_unique<Tga::Text>("Text/arial.ttf", Tga::FontSize_14);
+        myLabels[index]->SetText(labels[index]);
     }
 }
 
+// --- Run one game frame ---
+// A frame is one turn of the game loop. The frame number is used by the polling station.
 void GameWorld::Update(float aTimeDelta)
 {
-    UpdateDebugUI();
-    RebuildFlockingGrid();
-    // Allocate once on the stack and reuse it for every actor, without heap allocations.
-    std::array<const Actor*, actorCount> storage;
-    for (std::size_t index = 0; index < myActorManager.GetActorCount(); ++index)
+    ++myFrameCount;
+    // Move the player first, then check hacking, then move the guards.
+    // This lets both kinds of guard react to the same information in this frame.
+    GetPlayer().Update(aTimeDelta);
+    UpdateHacking();
+    for (std::size_t index = 0; index < 4; ++index)
     {
-        Actor& actor = myActorManager.GetActor(index);
-        const auto neighbours = actor.NeedsNeighbours()
-            ? FindNeighbours(actor, myFlockingSettings.perceptionRadius, storage)
-            : std::span<const Actor* const>{};
-        actor.CalculateSteering(aTimeDelta, neighbours);
+        GetGuard(index).Update(aTimeDelta);
     }
-    // Every query sees the same frame: finish steering before moving any actors.
-    for (std::size_t index = 0; index < myActorManager.GetActorCount(); ++index)
-        myActorManager.GetActor(index).UpdateMovement(aTimeDelta);
+
+    UpdateDebugUI();
 }
 
-void GameWorld::RebuildFlockingGrid()
+// --- Work out which computer the player is hacking ---
+// Being close enough is all that is needed;
+void GameWorld::UpdateHacking()
 {
-    myFlockingGrid.Clear();
-    for (std::size_t index = 0; index < myActorManager.GetActorCount(); ++index)
-        myFlockingGrid.InsertCircle(static_cast<int>(index), myActorManager.GetActor(index).GetPosition(), 0.f);
-}
-
-std::span<const Actor* const> GameWorld::FindNeighbours(
-    const Actor& aActor, float aRadius, std::span<const Actor*> aStorage) const
-{
-    std::size_t count = 0;
-    const float radiusSqr = aRadius * aRadius;
-    myFlockingGrid.VisitCellsOverlappingCircle(aActor.GetPosition(), aRadius,
-        [&](int aCellIndex)
+    // No computer is selected until we find one within reach.
+    const Actor* hackedComputer = nullptr;
+    // DistanceSqr gives distance times distance, so compare with reach times reach too.
+    const float distanceSqr = myHackingDistance * myHackingDistance;
+    for (const Actor& computer : myComputers)
+    {
+        if (GetPlayer().GetPosition().DistanceSqr(computer.GetPosition()) <= distanceSqr)
         {
-            for (const int index : myFlockingGrid.GetObjectsInCell(aCellIndex))
-            {
-                const Actor& candidate = myActorManager.GetActor(static_cast<std::size_t>(index));
-                if (&candidate == &aActor || aActor.GetPosition().DistanceSqr(candidate.GetPosition()) > radiusSqr)
-                    continue;
+            hackedComputer = &computer;
+            break;
+        }
+    }
 
-                // Fail explicitly if the population ever outgrows the caller's buffer; never drop neighbours.
-                if (count == aStorage.size())
-                    throw std::length_error("Neighbour scratch buffer is too small");
-                aStorage[count++] = &candidate;
-            }
-            return true;
-        });
-    return { aStorage.data(), count };
+    // Staying at the same computer (or staying away) is not a new event.
+    if (hackedComputer == myCurrentlyHackedComputer)
+    {
+        return; // No state change means no event this frame.
+    }
+
+    // Remember what changed. Smart guards still need the latest attempt after leaving.
+    const Actor* previousComputer = myCurrentlyHackedComputer;
+    myCurrentlyHackedComputer = hackedComputer;
+    if (hackedComputer != nullptr)
+    {
+        myLatestAttemptedComputer = hackedComputer; // Remember after the player leaves.
+    }
+
+    // Tell listeners that hacking stopped at the old computer.
+    // When switching computers, this message goes out before the new start message.
+    if (previousComputer != nullptr)
+    {
+        ++myStoppedEventCount;
+        myEvents.SendEvent(PlayerStoppedHackingEvent{previousComputer});
+        if (myLogEvents)
+        {
+            std::printf("[AI frame %llu] PlayerStoppedHacking: computer %d\n", myFrameCount,
+                        GetComputerNumber(previousComputer));
+        }
+    }
+    // Tell listeners once when the player starts hacking the new computer.
+    if (hackedComputer != nullptr)
+    {
+        ++myStartedEventCount;
+        myEvents.SendEvent(PlayerStartedHackingEvent{hackedComputer});
+        if (myLogEvents)
+        {
+            std::printf("[AI frame %llu] PlayerStartedHacking: computer %d\n", myFrameCount,
+                        GetComputerNumber(hackedComputer));
+        }
+    }
 }
 
+// --- Show the small debug panel ---
+// These options help us watch the game; they do not change the guard rules.
 void GameWorld::UpdateDebugUI()
 {
-    if (!ImGui::Begin("Flocking Settings"))
+#ifndef _RETAIL
+    if (!ImGui::Begin("U03 - World Interfacing", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
     {
         ImGui::End();
         return;
     }
 
-    if (myActorManager.GetActorCount() > 0)
-    {
-        Actor& actor = myActorManager.GetActor(0);
-        float maxSpeed = actor.GetMaxSpeed();
-        float maxForce = actor.GetMaxForce();
-        float mass = actor.GetMass();
-        float radius = actor.GetRadius();
+    ImGui::Text("Currently hacking: %d (0 = none)", GetComputerNumber(myCurrentlyHackedComputer));
+    ImGui::Text("Latest attempt: %d", GetComputerNumber(myLatestAttemptedComputer));
 
-        const bool maxSpeedChanged = ImGui::SliderFloat("Max Speed", &maxSpeed, 0.f, 1000.f);
-        if (ImGui::IsItemHovered())
-            ImGui::SetTooltip("Maximum travel speed. Higher values let boid move faster.");
-        if (maxSpeedChanged)
-        {
-            for (std::size_t index = 0; index < myActorManager.GetActorCount(); ++index)
-            {
-                myActorManager.GetActor(index).SetMaxSpeed(maxSpeed);
-            }
-        }
-        const bool maxForceChanged = ImGui::SliderFloat("Max Force", &maxForce, 0.f, 2000.f);
-        if (ImGui::IsItemHovered())
-            ImGui::SetTooltip("Maximum steering force. Higher values allow sharper turns and faster acceleration.");
-        if (maxForceChanged)
-        {
-            for (std::size_t index = 0; index < myActorManager.GetActorCount(); ++index)
-            {
-                myActorManager.GetActor(index).SetMaxForce(maxForce);
-            }
-        }
-        const bool massChanged = ImGui::SliderFloat("Mass", &mass, 0.1f, 20.f);
-        if (ImGui::IsItemHovered())
-            ImGui::SetTooltip("Resistance to acceleration. Higher mass makes turning and speeding up slower.");
-        if (massChanged)
-        {
-            for (std::size_t index = 0; index < myActorManager.GetActorCount(); ++index)
-            {
-                myActorManager.GetActor(index).SetMass(mass);
-            }
-        }
-        const bool radiusChanged = ImGui::SliderFloat("Radius", &radius, 0.f, 100.f);
-        if (ImGui::IsItemHovered())
-            ImGui::SetTooltip("boid radius used by obstacle casts and optional containment; does not change sprite size.");
-        if (radiusChanged)
-        {
-            for (std::size_t index = 0; index < myActorManager.GetActorCount(); ++index)
-            {
-                myActorManager.GetActor(index).SetRadius(radius);
-            }
-        }
-    }
-    ImGui::SliderFloat("Perception Radius", &myFlockingSettings.perceptionRadius, 20.f, 500.f);
-    if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("How far boid can see. Only boid within this distance influence flocking.");
-    ImGui::SliderFloat("Avoidance Radius", &myFlockingSettings.avoidanceRadius, 5.f, 200.f);
-    if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("Push away from detected neighbours inside this distance. Limited by perception radius.");
-    ImGui::SliderFloat("Alignment", &myFlockingSettings.alignmentWeight, 0.f, 5.f);
-    if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("Match the average neighbour velocity. Zero disables this force.");
-    ImGui::SliderFloat("Cohesion", &myFlockingSettings.cohesionWeight, 0.f, 5.f);
-    if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("Move towards the average neighbour position. Zero disables this force.");
-    ImGui::SliderFloat("Separation", &myFlockingSettings.separationWeight, 0.f, 5.f);
-    if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("Push away from close neighbours. Zero disables this force.");
-    ImGui::Separator();
-    ImGui::TextUnformatted("Obstacle avoidance");
-    ImGui::SliderFloat("Minimum ray length", &myObstacleSettings.minimumRayLength, 10.f, 500.f);
-    if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("Minimum distance checked for obstacles, even while moving slowly.");
-    ImGui::SliderFloat("Look ahead (seconds)", &myObstacleSettings.lookAheadSeconds, 0.f, 3.f);
-    if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("Check this many seconds of travel ahead. Longer rays give fast boid more time to turn.");
-    ImGui::SliderFloat("Obstacle clearance", &myObstacleSettings.clearance, 0.f, 100.f);
-    if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("Extra gap between the boid's collision radius and an obstacle.");
-    ImGui::SliderFloat("Obstacle avoidance strength", &myObstacleSettings.weight, 0.f, 30.f);
-    if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("How strongly avoidance competes with flocking. Zero turns obstacle avoidance off.");
-    if (ImGui::Checkbox("Enable old containment (opt in)", &myUseContainment))
+    if (ImGui::CollapsingHeader("Visuals"))
     {
-        for (std::size_t index = 0; index < myActorManager.GetActorCount(); ++index)
+        ImGui::Checkbox("Show hacking ranges", &myShowHackingDistance);
+        ImGui::Checkbox("Show target lines", &myShowTargets);
+    }
+
+    if (ImGui::CollapsingHeader("Events and polling"))
+    {
+        ImGui::Text("Frame: %llu", myFrameCount);
+        ImGui::Text("Events: started %u / stopped %u", myStartedEventCount, myStoppedEventCount);
+        const PollingCache& current = myPollingStation.GetCurrentCacheDebug();
+        const PollingCache& latest = myPollingStation.GetLatestCacheDebug();
+        ImGui::Text("Current: requests %llu / refreshes %llu", current.requestCount, current.refreshCount);
+        ImGui::Text("Latest: requests %llu / refreshes %llu", latest.requestCount, latest.refreshCount);
+        ImGui::Checkbox("Print events", &myLogEvents);
+        if (ImGui::Checkbox("Print polling refreshes", &myLogPolling))
         {
-            Controller* wander = myActorManager.GetActor(index).GetController();
-            auto data = wander->GetControllerData();
-            data.useContainment = myUseContainment;
-            wander->SetControllerData(data);
+            myPollingStation.SetLogRefreshes(myLogPolling);
         }
     }
-    if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("Add the old containment steering as well as ray-based wall avoidance. Off by default.");
-    ImGui::Checkbox("Show traversal bounds (purple)", &myShowTraversalBounds);
-    ImGui::Checkbox("Show obstacles (orange)", &myShowObstacles);
-    ImGui::Checkbox("Show obstacle avoidance rays", &myShowAvoidanceRays);
-    ImGui::Checkbox("Show rays for all boid", &myShowAllAvoidanceRays);
-    ImGui::TextUnformatted("Rays: red = blocked, green = clear; cyan arrow = chosen turn.");
-    ImGui::TextUnformatted("Rays use current positions; all blocked means brake.");
-    ImGui::Separator();
-    ImGui::TextUnformatted("Debug: red boid and its neighbours (current positions)");
-    ImGui::Checkbox("Detection radius (yellow)", &myShowDetectionRadius);
-    ImGui::Checkbox("Cohesion centre and lines (green)", &myShowCohesion);
-    ImGui::Checkbox("Neighbour velocities and average (cyan)", &myShowAlignment);
-    ImGui::Checkbox("Separation push directions (red)", &myShowSeparation);
-    ImGui::TextUnformatted("Velocity lines show 0.1 seconds of travel.");
-    ImGui::TextUnformatted("Red lines grow longer as neighbours get closer.");
     ImGui::End();
+#endif
 }
 
+// --- Draw the game ---
+// Actors draw their sprites. We also draw computer colours and name labels.
 void GameWorld::Render()
 {
     myActorManager.Draw();
-    DrawFlockingDebug();
-    DrawObstacleDebug();
+    for (std::size_t index = 0; index < myComputers.size(); ++index)
+    {
+        Actor& computer = myComputers[index];
+        // Green means hacking now, yellow means the latest old attempt, white means neither.
+        computer.SetColor(&computer == myCurrentlyHackedComputer
+                              ? Tga::Color(0.3f, 1.f, 0.4f, 1.f)
+                              : (&computer == myLatestAttemptedComputer ? Tga::Color(1.f, 0.85f, 0.3f, 1.f)
+                                                                        : Tga::Color(1, 1, 1, 1)));
+        computer.Draw();
+    }
+
+    for (std::size_t index = 0; index < myLabels.size(); ++index)
+    {
+        const Actor& actor = index < 5 ? myActorManager.GetActor(index) : myComputers[index - 5];
+        const float labelOffset = (index == 2 || index == 4) ? 50.f : 32.f;
+        myLabels[index]->SetColor(actor.GetSpriteInstanceData().color);
+        myLabels[index]->SetPosition((actor.GetPosition() + CommonUtilities::Vector2f{-30.f, labelOffset}).ToTga());
+        myLabels[index]->Render();
+    }
+    DrawDebug();
 }
 
-void GameWorld::DrawObstacleDebug()
+// --- Draw optional guides on the playing field ---
+// Circles show hacking reach. Lines show where the player and guards want to go.
+void GameWorld::DrawDebug()
 {
 #ifndef _RETAIL
-    auto& drawer = Tga::GraphicsEngine::GetInstance()->GetDebugDrawer();
-    if (myShowTraversalBounds && myTraversalBounds)
+    Tga::DebugDrawer& drawer = Tga::GraphicsEngine::GetInstance()->GetDebugDrawer();
+    if (myShowHackingDistance)
     {
-        const auto min = myTraversalBounds->GetMin();
-        const auto max = myTraversalBounds->GetMax();
-        const Tga::Color purple(0.8f, 0.3f, 1.f, 1.f);
-        drawer.DrawLine(min.ToTga(), { max.x, min.y }, purple);
-        drawer.DrawLine({ max.x, min.y }, max.ToTga(), purple);
-        drawer.DrawLine(max.ToTga(), { min.x, max.y }, purple);
-        drawer.DrawLine({ min.x, max.y }, min.ToTga(), purple);
+        for (const Actor& computer : myComputers)
+        {
+            drawer.DrawCircle(computer.GetPosition().ToTga(), myHackingDistance, Tga::Color(0.4f, 1.f, 0.4f, 1.f));
+        }
     }
-    if (myShowObstacles)
-    {
-        for (const auto& obstacle : myObstacles)
-            drawer.DrawCircle(obstacle.position.ToTga(), obstacle.radius, Tga::Color(1.f, 0.55f, 0.1f, 1.f));
-    }
-    if (!myShowAvoidanceRays || myObstacleSettings.weight <= 0.f)
-        return;
-
-    const std::size_t count = myShowAllAvoidanceRays ? myActorManager.GetActorCount()
-        : (std::min)(myActorManager.GetActorCount(), std::size_t{ 1 });
-    for (std::size_t index = 0; index < count; ++index)
+    for (std::size_t index = 0; index < myActorManager.GetActorCount(); ++index)
     {
         const Actor& actor = myActorManager.GetActor(index);
-        for (const auto& controller : actor.GetControllers())
+        const ControllerDebugInfo info = actor.GetController()->GetDebugInfo();
+        if (myShowTargets && info.hasTarget)
         {
-            const auto* avoidance = dynamic_cast<const ObstacleAvoidanceController*>(controller.get());
-            if (!avoidance)
-                continue;
-            const auto info = avoidance->EvaluateAvoidance(actor);
-            for (std::size_t rayIndex = 0; rayIndex < info.testedRayCount; ++rayIndex)
-            {
-                const auto& ray = info.rays[rayIndex];
-                const auto end = actor.GetPosition() + ray.direction * ray.distance;
-                const Tga::Color color = ray.blocked ? Tga::Color(1.f, 0.2f, 0.2f, 1.f)
-                    : Tga::Color(0.2f, 1.f, 0.3f, 1.f);
-                drawer.DrawLine(actor.GetPosition().ToTga(), end.ToTga(), color);
-            }
-            if (info.forwardBlocked && info.foundClearDirection)
-                drawer.DrawArrow(actor.GetPosition().ToTga(),
-                    (actor.GetPosition() + info.direction * 50.f).ToTga(), Tga::Color(0.f, 1.f, 1.f, 1.f), 6.f);
+            drawer.DrawLine(actor.GetPosition().ToTga(), info.targetPosition.ToTga(),
+                            actor.GetSpriteInstanceData().color);
         }
     }
 #endif
 }
 
-void GameWorld::DrawFlockingDebug()
+int GameWorld::GetComputerNumber(const Actor* aComputer) const
 {
-#ifndef _RETAIL
-    if (myActorManager.GetActorCount() == 0 ||
-        !(myShowDetectionRadius || myShowCohesion || myShowAlignment || myShowSeparation))
-        return;
-
-    // Movement has finished, so refresh the grid to match the positions being drawn.
-    RebuildFlockingGrid();
-    std::array<const Actor*, actorCount> storage;
-    const Actor& actor = myActorManager.GetActor(0);
-    const auto neighbours = FindNeighbours(actor, myFlockingSettings.perceptionRadius, storage);
-    const auto position = actor.GetPosition();
-    auto& drawer = Tga::GraphicsEngine::GetInstance()->GetDebugDrawer();
-    const Tga::Color yellow(1.f, 0.85f, 0.f, 1.f);
-    const Tga::Color green(0.2f, 1.f, 0.3f, 1.f);
-    const Tga::Color cyan(0.f, 0.8f, 1.f, 1.f);
-    const Tga::Color red(1.f, 0.15f, 0.15f, 1.f);
-    // Draw velocities as this many seconds of travel, keeping fast boid's lines readable.
-    constexpr float velocitySeconds = 0.1f;
-    // Maximum length of each red push line; closer neighbours produce longer lines.
-    constexpr float pushLineLength = 25.f;
-
-    if (myShowDetectionRadius)
-        drawer.DrawCircle(position.ToTga(), myFlockingSettings.perceptionRadius, yellow);
-    if (neighbours.empty())
-        return;
-
-    CommonUtilities::Vector2f centre = {};
-    CommonUtilities::Vector2f averageVelocity = {};
-    for (const Actor* neighbour : neighbours)
+    for (std::size_t index = 0; index < myComputers.size(); ++index)
     {
-        centre += neighbour->GetPosition();
-        averageVelocity += neighbour->GetVelocity();
-    }
-    centre /= static_cast<float>(neighbours.size());
-    averageVelocity /= static_cast<float>(neighbours.size());
-
-    if (myShowCohesion)
-    {
-        drawer.DrawCircle(centre.ToTga(), 5.f, green);
-        drawer.DrawArrow(position.ToTga(), centre.ToTga(), green, 6.f);
-    }
-    if (myShowAlignment)
-        drawer.DrawArrow(position.ToTga(), (position + averageVelocity * velocitySeconds).ToTga(), cyan, 6.f);
-
-    for (const Actor* neighbour : neighbours)
-    {
-        const auto neighbourPosition = neighbour->GetPosition();
-        if (myShowCohesion)
-            drawer.DrawLine(neighbourPosition.ToTga(), centre.ToTga(), green);
-        if (myShowAlignment)
-            drawer.DrawLine(neighbourPosition.ToTga(),
-                (neighbourPosition + neighbour->GetVelocity() * velocitySeconds).ToTga(), cyan);
-        if (myShowSeparation)
+        if (aComputer == &myComputers[index])
         {
-            const auto offset = position - neighbourPosition;
-            const float distanceSqr = offset.LengthSqr();
-            const float radius = myFlockingSettings.avoidanceRadius;
-            // Match separation's distance weighting, including its coincident-position guard.
-            if (distanceSqr <= 0.0001f || distanceSqr >= radius * radius || radius <= 0.f)
-                continue;
-            const float closeness = (radius - offset.Length()) / radius;
-            const auto push = offset.GetNormalized() * (closeness * pushLineLength);
-            drawer.DrawLine(position.ToTga(), (position + push).ToTga(), red);
-            drawer.DrawLine(neighbourPosition.ToTga(), (neighbourPosition - push).ToTga(), red);
+            return static_cast<int>(index) + 1;
         }
     }
-#endif
+    return 0;
+}
+
+std::uint64_t GameWorld::GetFrameCount() const
+{
+    return myFrameCount;
+}
+const Actor* GameWorld::GetCurrentlyHackedComputer() const
+{
+    return myCurrentlyHackedComputer;
+}
+const Actor* GameWorld::GetLatestAttemptedComputer() const
+{
+    return myLatestAttemptedComputer;
+}
+AIPollingStation& GameWorld::GetPollingStation()
+{
+    return myPollingStation;
+}
+AIEventManager& GameWorld::GetEventManager()
+{
+    return myEvents;
+}
+Actor& GameWorld::GetPlayer()
+{
+    return myActorManager.GetActor(0);
+}
+Actor& GameWorld::GetGuard(std::size_t aIndex)
+{
+    assert(aIndex < 4);
+    return myActorManager.GetActor(aIndex + 1);
+}
+const Actor& GameWorld::GetComputer(std::size_t aIndex) const
+{
+    return myComputers.at(aIndex);
+}
+unsigned int GameWorld::GetStartedEventCount() const
+{
+    return myStartedEventCount;
+}
+unsigned int GameWorld::GetStoppedEventCount() const
+{
+    return myStoppedEventCount;
+}
+float GameWorld::GetHackingDistance() const
+{
+    return myHackingDistance;
 }

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Controller.h"
-#include "../ObstacleAvoidance.h"
+#include "ObstacleAvoidance.h"
 #include <vector>
 
 class ObstacleAvoidanceController final : public Controller

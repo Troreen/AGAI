@@ -17,7 +17,9 @@ void SeekerController::Update(Actor& aActor, float)
     KeepTargetReachable(aActor);
     const float targetReachedRadius = GetTargetControllerData().targetReachedRadius;
     if ((myTargetPosition - aActor.GetPosition()).LengthSqr() < targetReachedRadius * targetReachedRadius)
+    {
         SetRandomTarget(aActor);
+    }
 }
 
 ControllerDebugInfo SeekerController::GetDebugInfo() const

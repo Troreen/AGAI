@@ -21,6 +21,7 @@ project "Game"
 	files {
 		"source/**.h",
 		"source/**.cpp",
+		dirs.common_utilities_include .. "/InputHandler.cpp",
 	}
 
 	libdirs { dirs.lib, dirs.dependencies, dirs.common_utilities_lib }
@@ -29,21 +30,18 @@ project "Game"
 	 
 	filter "configurations:Debug"
 		defines {"_DEBUG"}
-		links {"CommonUtilities-d"}
 		runtime "Debug"
 		symbols "on"
 		files {"tools/**"}
 		includedirs {"tools/"}
 	filter "configurations:Release"
 		defines "_RELEASE"
-		links {"CommonUtilities"}
 		runtime "Release"
 		optimize "on"
 		files {"tools/**"}
 		includedirs {"tools/"}
 	filter "configurations:Retail"
 		defines "_RETAIL"
-		links {"CommonUtilities"}
 		runtime "Release"
 		optimize "on"
 

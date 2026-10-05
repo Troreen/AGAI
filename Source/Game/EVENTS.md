@@ -109,7 +109,7 @@ The manager rejects events with the wrong enum, or with `Invalid` or `Count`.
 
 1. Registering stores the listener's address and a callback in its event list.
 2. Sending looks up that list using the event's enum value.
-3. The manager calls each active callback in registration order.
+3. The manager calls each callback in registration order.
 4. The callback calls the registered member function with the event.
 
 The template lets the compiler work out the event type from the receiving
@@ -125,30 +125,16 @@ casts back to the expected event type inside the callback.
 the same entry would make that cast unsafe. The compiler's enum checks do not
 detect that mistake.
 
-## Why the subscription uses a shared pointer
+## Keeping delivery simple
 
-A callback might unregister another listener, or register a new one.
-Changing a vector while directly looping over it can invalidate the loop.
+The manager stores subscription records by value in a vector and loops over
+them directly when sending an event. It does not need shared pointers,
+snapshots, active flags, or a deferred registration queue.
 
-Each send therefore copies a list of `std::shared_ptr<EventListener>` handles.
-A shared pointer keeps the subscription record alive until all copies release it.
-It does **not** keep the guard or other listener object alive.
-
-Unregistering marks the record inactive and removes it from the manager's list.
-The current send may still hold the record, but sees that it is inactive and
-skips the callback. This also removes every duplicate registration for the object.
-
-The resulting rules are:
-
-- New listeners do not receive a send that has already started.
-- Listeners removed before their turn are skipped immediately.
-- A callback can unregister itself safely.
-- A nested `SendEvent` runs immediately and sees the current registrations.
-- Registering the same callback twice produces two calls until unregistered.
-- An exception from a callback propagates to the sender and stops that send.
-
-There is no deferred registration queue. The small snapshot copy is a deliberate
-tradeoff for straightforward code; we can revisit it if profiling finds a problem.
+Register listeners when controllers are created and unregister them when
+controllers are destroyed. Do not register, unregister, or destroy listeners
+inside an event callback: that would change the vector while it is being read.
+U03 callbacks only remember their computer target.
 
 ## Object lifetime and usage rules
 
@@ -161,12 +147,4 @@ tradeoff for straightforward code; we can revisit it if profiling finds a proble
 
 The manager itself cannot be copied or moved, preventing accidental duplication
 of subscriptions. A game world can own it and pass references to interested objects.
-We will choose actual event names, payloads, and owners for the assignment later.
-
-## Verification
-
-`tests/EventManagerTests.cpp` checks payload delivery, separate event types,
-empty sends, duplicate removal, changes during dispatch, removal followed by
-listener destruction, nested sends, and recovery after a callback throws.
-
-See `tests/README.md` for the compiler commands.
+U03 uses this manager for hacking-started and hacking-stopped events.

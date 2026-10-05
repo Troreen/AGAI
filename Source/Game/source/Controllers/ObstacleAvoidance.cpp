@@ -1,5 +1,5 @@
 #include "ObstacleAvoidance.h"
-#include "Interfaces/TraversalBounds.h"
+#include "TraversalBounds.h"
 
 #include <algorithm>
 #include <cmath>
@@ -84,7 +84,9 @@ AvoidanceRay ObstacleAvoidance::CastRay(const CommonUtilities::Vector2f& aPositi
         {
             // If already overlapping, allow movement outwards instead of trapping the fish.
             if (projection > 0.f || offset.LengthSqr() <= 0.0001f)
+            {
                 continue;
+            }
             ray.distance = 0.f;
             ray.blocked = true;
             continue;
@@ -92,7 +94,9 @@ AvoidanceRay ObstacleAvoidance::CastRay(const CommonUtilities::Vector2f& aPositi
 
         const float discriminant = projection * projection - outsideDistanceSqr;
         if (discriminant < 0.f)
+        {
             continue;
+        }
         const float hitDistance = -projection - std::sqrt(discriminant);
         if (hitDistance >= 0.f && hitDistance <= ray.distance)
         {
@@ -118,7 +122,9 @@ ObstacleAvoidanceResult ObstacleAvoidance::FindDirection(const CommonUtilities::
         const auto ray = CastRay(aPosition, direction, aLength, aRadius, aObstacles, aBounds);
         result.rays[result.testedRayCount++] = ray;
         if (result.testedRayCount == 1)
+        {
             result.forwardBlocked = ray.blocked;
+        }
         if (!ray.blocked)
         {
             result.foundClearDirection = true;

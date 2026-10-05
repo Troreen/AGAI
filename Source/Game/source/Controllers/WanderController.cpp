@@ -22,9 +22,13 @@ void WanderController::Update(Actor& aActor, float aDeltaTime)
 {
     CommonUtilities::Vector2f forward = aActor.GetVelocity();
     if (forward.LengthSqr() <= 0.0001f)
+    {
         forward = { 1.f, 0.f };
+    }
     else
+    {
         forward = forward.GetNormalized();
+    }
 
     myJitterTimer += aDeltaTime;
     if (myJitterTimer >= myWanderData.directionChangeInterval)

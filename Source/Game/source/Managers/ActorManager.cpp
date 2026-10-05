@@ -21,7 +21,10 @@ void ActorManager::Update(float aDeltaTime)
 
 void ActorManager::Draw() const
 {
-    for (const auto& actor : myActors) actor->Draw();
+    for (const auto& actor : myActors)
+    {
+        actor->Draw();
+    }
 }
 
 Actor& ActorManager::GetActor(std::size_t aIndex) { return *myActors.at(aIndex); }

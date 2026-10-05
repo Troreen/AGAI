@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Controller.h"
-#include "../FlockingSettings.h"
+#include "FlockingSettings.h"
 
 class SeparationController final : public Controller
 {
