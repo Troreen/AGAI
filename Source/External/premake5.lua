@@ -96,6 +96,9 @@ project "External"
 		}
 
 	filter "system:windows"
+		prebuildcommands {
+			[[if not exist "%{wks.location}/Source/External/DirectXTex/DirectXTex/Shaders/Compiled/BC6HEncode_EncodeBlockCS.inc" (set "LegacyShaderCompiler=$(WindowsSDK_ExecutablePath_x64.Split(';')[0])\fxc.exe" & pushd "%{wks.location}/Source/External/DirectXTex/DirectXTex/Shaders" & call CompileShaders.cmd & if errorlevel 1 exit /b 1 & popd)]]
+		}
 		kind "StaticLib"
 		staticruntime "off"
 		symbols "On"		
@@ -109,9 +112,7 @@ project "External"
 			"MultiProcessorCompile"
 		}
 		links {
-			"DXGI",
 			"dxguid",
-			"windowscodecs",
 		}
 
 		defines { "_WIN32_WINNT=0x0601" }
