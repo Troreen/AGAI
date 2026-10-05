@@ -1,75 +1,49 @@
 #pragma once
 
-#include "AIEventManager.h"
-#include "AIPollingStation.h"
 #include "Actor.h"
 #include "Managers/ActorManager.h"
-
+#include "Navigation/NavMesh.h"
 #include <array>
-#include <cstdint>
 #include <memory>
 
-namespace CommonUtilities
-{
-class InputHandler;
-}
+namespace CommonUtilities { class InputHandler; }
+namespace Tga { class Text; }
+class PlayerController;
+class PathFollowingController;
 
-namespace Tga
-{
-class Text;
-} // namespace Tga
-
-// GameWorld sets up the scene and keeps track of what is happening in it.
+// Owns the U04 scene. Navigation -> A* -> funnel -> steering is visible in Update.
 class GameWorld
 {
 public:
     GameWorld();
     ~GameWorld();
-
-    // --- Start the scene, update it, and draw it ---
     void Init(const CommonUtilities::InputHandler& aInput);
     void Update(float aTimeDelta);
     void Render();
-
-    // --- Information other parts of the game can ask for ---
-    std::uint64_t GetFrameCount() const;
-    const Actor* GetCurrentlyHackedComputer() const;
-    const Actor* GetLatestAttemptedComputer() const;
-    AIPollingStation& GetPollingStation();
-    AIEventManager& GetEventManager();
     Actor& GetPlayer();
-    Actor& GetGuard(std::size_t aIndex);
-    const Actor& GetComputer(std::size_t aIndex) const;
-    unsigned int GetStartedEventCount() const;
-    unsigned int GetStoppedEventCount() const;
-    float GetHackingDistance() const;
 
 private:
-    void UpdateHacking();
-    void UpdateDebugUI();
-    void DrawDebug();
-    int GetComputerNumber(const Actor* aComputer) const;
+    bool LoadNavigationMesh();
+    void PlanCompanionPath();
+    void UpdateNavigationUI();
 
-    // --- Remember what the player is doing ---
-    // A null computer pointer means there is no computer to report.
-    std::uint64_t myFrameCount = 0;
-    const Actor* myCurrentlyHackedComputer = nullptr;
-    const Actor* myLatestAttemptedComputer = nullptr;
-    float myHackingDistance = 75.f;
-    unsigned int myStartedEventCount = 0;
-    unsigned int myStoppedEventCount = 0;
-    // --- Debug display and optional console messages ---
-    bool myShowHackingDistance = true;
-    bool myShowTargets = true;
-    bool myLogEvents = false;
-    bool myLogPolling = false;
-
-    // --- The objects that belong to this world ---
-    // C++ destroys these from bottom to top. Guards must stop listening before
-    // their event manager and computers are destroyed.
-    AIEventManager myEvents;
-    AIPollingStation myPollingStation;
-    std::array<Actor, 3> myComputers;
+    // Data outlives the actors/controllers that borrow it.
+    NavMesh myNavMesh;
+    NavigationPath myNavigationPath;
     ActorManager myActorManager;
-    std::array<std::unique_ptr<Tga::Text>, 8> myLabels;
+    PlayerController* myPlayerController = nullptr; // Owned by the player Actor.
+    PathFollowingController* myCompanionController = nullptr; // Owned by the companion Actor.
+    CommonUtilities::Vector2f myRequestedTarget;
+    std::array<std::unique_ptr<Tga::Text>, 2> myLabels;
+
+    bool myShowNavMesh = true;
+    bool myShowNodes = true;
+    bool myShowConnections = false;
+    bool myShowRawPath = true;
+    bool myShowSmoothPath = true;
+    bool myShowPortals = false;
+    bool myShowTargets = true;
+    int mySelectedNode = -1;
+    int myNavMeshAsset = 0;
+    unsigned int myMovementCorrections = 0;
 };

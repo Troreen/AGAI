@@ -2,7 +2,7 @@
 #include "../Actor.h"
 #include "ControllerUtils.h"
 
-#include <tge/application.h>
+#include <tge/graphics/DX11.h>
 #include <InputHandler.h>
 
 #ifndef _RETAIL
@@ -28,11 +28,10 @@ void PlayerController::Update(Actor& aActor, float)
 #endif
     if (acceptMouse && myInput.IsMouseButtonPressed(Keys::MOUSELBUTTON))
     {
-        const Tga::Application& application = *Tga::Application::GetInstance();
         const POINT mouse = myInput.GetMousePos();
         // Mouse coordinates start at the top-left; world coordinates start at the bottom-left.
         SetTargetPosition({static_cast<float>(mouse.x),
-                           static_cast<float>(application.GetRenderSize().y) - static_cast<float>(mouse.y)});
+                           static_cast<float>(Tga::DX11::GetResolution().y) - static_cast<float>(mouse.y)});
     }
 
     // Stop when we are close enough, instead of circling around the clicked point.
@@ -60,6 +59,11 @@ ControllerDebugInfo PlayerController::GetDebugInfo() const
 }
 
 // --- Remember the latest clicked position ---
+const CommonUtilities::Vector2f& PlayerController::GetTargetPosition() const
+{
+    return myTargetPosition;
+}
+
 void PlayerController::SetTargetPosition(const CommonUtilities::Vector2f& aPosition)
 {
     myTargetPosition = aPosition;

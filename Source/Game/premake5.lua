@@ -21,6 +21,9 @@ project "Game"
 	files {
 		"source/**.h",
 		"source/**.cpp",
+		dirs.common_utilities_include .. "/Event.hpp",
+		dirs.common_utilities_include .. "/EventManager.hpp",
+		dirs.common_utilities_include .. "/PollingCache.hpp",
 		dirs.common_utilities_include .. "/InputHandler.cpp",
 	}
 

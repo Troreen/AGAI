@@ -2,20 +2,22 @@
 
 This repository contains coursework and experiments for the **Applied Game AI** course, built on the TGA engine (TGE).
 
-The current game project demonstrates 2D steering behaviors:
+The current game project implements **U04 - NavMesh and Companion**:
 
-- Seek
-- Arrive
-- Wander
-- Predictive traversal-bounds containment
+- An unrestricted mouse-target player using Arrive steering.
+- A companion using triangle-node A*, the supplied course funnel, and path following.
+- File-loaded course FBX navmeshes and debug views for paths, portals, and connections.
 
-See [Steering system documentation](Source/Game/STEERING.md) for the current controller architecture, tuning values, bounds system, and debug overlays.
+See [Navigation](Source/Game/NAVIGATION.md) for the implementation flow, controls,
+asset details, and verification. Earlier steering behaviours remain available in
+the [steering system](Source/Game/STEERING.md). Reusable event and polling code
+now lives in [CommonUtilities](CommonUtilities/AI_UTILITIES.md).
 
 ## Running the project
 
 1. Open `Game.sln` in Visual Studio 2025.
 2. Select the `Debug | x64` configuration.
-3. Build and run the game project.
+3. Build `GameMain` and run it with `Bin` as the working directory.
 
 If project files need to be regenerated, run `generate_game.bat` from the repository root.
 

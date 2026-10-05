@@ -14,6 +14,7 @@ public:
     void Update(Actor& aActor, float aDeltaTime) override;
     CommonUtilities::Vector2f GetDesiredVelocity(const Actor& aActor) const override;
     ControllerDebugInfo GetDebugInfo() const override;
+    const CommonUtilities::Vector2f& GetTargetPosition() const;
     void SetTargetPosition(const CommonUtilities::Vector2f& aPosition);
 
 private:

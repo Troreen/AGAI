@@ -11,7 +11,7 @@ Each active controller has two parts:
 
 While the actor is close to leaving the level, containment is added to the primary force. Once the actor is already outside valid space, containment takes priority until it is back inside. This prevents normal behavior from fighting recovery.
 
-The current world-interfacing scene gives each actor one controller and does not set up flocking, obstacles, or traversal bounds. The earlier controllers and their settings, avoidance helpers, and bounds implementations are preserved in `source/Controllers` for reuse. Controllers only depend on `ITraversalBounds`, so a larger project can provide another implementation for polygons, tile maps, or a navmesh.
+The current U04 scene gives each actor one controller: mouse-target Arrive for the player and smoothed path following for the companion. Navmesh movement constraints are applied only to the companion after Actor integration. The earlier controllers and their settings, avoidance helpers, and bounds implementations are preserved in `source/Controllers` for reuse. Controllers only depend on `ITraversalBounds`, so a larger project can provide another implementation for polygons, tile maps, or a navmesh.
 
 ## Config data
 

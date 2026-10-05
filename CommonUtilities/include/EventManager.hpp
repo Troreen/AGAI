@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Event.h"
+#include "Event.hpp"
 
 #include <array>
 #include <cassert>
@@ -9,6 +9,8 @@
 #include <type_traits>
 #include <vector>
 
+namespace CommonUtilities
+{
 // --- The kind of function a listener gives us ---
 // It belongs to the listener and reads one message of the matching event type.
 template <typename ListenerType, typename EventChildType>
@@ -96,3 +98,5 @@ private:
     // One growable listener list per enum value. Invalid's list stays unused.
     std::array<std::vector<EventListener>, static_cast<std::size_t>(EventEnumType::Count)> myEventListeners;
 };
+
+} // namespace CommonUtilities

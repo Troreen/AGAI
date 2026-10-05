@@ -157,13 +157,15 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="..\Source\Game\source\Navigation\NavMesh.h" />
+    <ClInclude Include="..\Source\Game\source\NavMesh_LoadFbx.h" />
+    <ClInclude Include="..\Source\Game\source\NavMesh_PerformFunnelling.h" />
+    <ClInclude Include="..\Source\Game\source\Controllers\PathFollowingController.h" />
+    <ClInclude Include="..\CommonUtilities\include\Event.hpp" />
+    <ClInclude Include="..\CommonUtilities\include\EventManager.hpp" />
+    <ClInclude Include="..\CommonUtilities\include\PollingCache.hpp" />
     <ClInclude Include="..\Source\Game\source\Actor.h" />
-    <ClInclude Include="..\Source\Game\source\AIEventManager.h" />
-    <ClInclude Include="..\Source\Game\source\AIPollingStation.h" />
     <ClInclude Include="..\Source\Game\source\Controllers\PlayerController.h" />
-    <ClInclude Include="..\Source\Game\source\Controllers\WorldInterfacingControllers.h" />
-    <ClInclude Include="..\Source\Game\source\Event.h" />
-    <ClInclude Include="..\Source\Game\source\EventManager.h" />
     <ClInclude Include="..\Source\Game\source\Controllers\AlignmentController.h" />
     <ClInclude Include="..\Source\Game\source\Controllers\ArriveController.h" />
     <ClInclude Include="..\Source\Game\source\Controllers\CohesionController.h" />
@@ -182,11 +184,11 @@
     <ClInclude Include="..\Source\Game\source\Managers\ActorManager.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\Source\Game\source\Navigation\NavMesh.cpp" />
+    <ClCompile Include="..\Source\Game\source\Controllers\PathFollowingController.cpp" />
     <ClCompile Include="..\Source\Game\source\Actor.cpp" />
-    <ClCompile Include="..\Source\Game\source\AIPollingStation.cpp" />
     <ClCompile Include="..\Source\Game\source\Controllers\PlayerController.cpp" />
     <ClCompile Include="..\CommonUtilities\include\InputHandler.cpp" />
-    <ClCompile Include="..\Source\Game\source\Controllers\WorldInterfacingControllers.cpp" />
     <ClCompile Include="..\Source\Game\source\Controllers\AlignmentController.cpp" />
     <ClCompile Include="..\Source\Game\source\Controllers\ArriveController.cpp" />
     <ClCompile Include="..\Source\Game\source\Controllers\CohesionController.cpp" />

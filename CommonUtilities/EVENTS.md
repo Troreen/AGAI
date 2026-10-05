@@ -20,16 +20,16 @@ We kept the same basic approach and replaced those dependencies with standard C+
 | `HD_EventManager` | `EventManager` | Remove the teacher's library prefix |
 | `std::bind` around a lambda | Just the lambda | The wrapper was unnecessary |
 
-No new custom containers or type aliases were needed in CommonUtilities.
-Both headers remain in `Source/Game/source`. They contain their implementations,
-so there is no `EventManager.cpp` or additional library to link.
+The reusable headers live in `CommonUtilities/include/Event.hpp` and
+`CommonUtilities/include/EventManager.hpp`. They contain their implementations,
+so there is no additional library to link. Manager types use the `CommonUtilities` namespace.
 
 ## A complete example
 
 This example is illustrative; it does not add guards or events to the game yet.
 
 ```cpp
-#include "EventManager.h"
+#include <EventManager.hpp>
 #include <iostream>
 
 // Generates: Invalid = 0, NoiseHeard = 1, Count = 2.
@@ -42,7 +42,7 @@ struct NoiseHeardEvent
 };
 
 // A shorter name for a manager that handles our AI event enum.
-using AIEventManager = EventManager<AIEventType>;
+using AIEventManager = CommonUtilities::EventManager<AIEventType>;
 
 class Guard
 {
@@ -134,7 +134,7 @@ snapshots, active flags, or a deferred registration queue.
 Register listeners when controllers are created and unregister them when
 controllers are destroyed. Do not register, unregister, or destroy listeners
 inside an event callback: that would change the vector while it is being read.
-U03 callbacks only remember their computer target.
+Receiving functions should handle the message without changing subscriptions.
 
 ## Object lifetime and usage rules
 
@@ -147,4 +147,5 @@ U03 callbacks only remember their computer target.
 
 The manager itself cannot be copied or moved, preventing accidental duplication
 of subscriptions. A game world can own it and pass references to interested objects.
-U03 uses this manager for hacking-started and hacking-stopped events.
+The former U03 scene used this same manager for hacking transitions; U04 can
+reuse it later for gameplay events without bringing that scene back.
