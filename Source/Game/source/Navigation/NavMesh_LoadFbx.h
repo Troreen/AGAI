@@ -1,4 +1,3 @@
-// Adapted course loader: std containers, checked FBX import, and pixel-space scaling.
 // Included once by Navigation/NavMesh.cpp, after its geometry helpers.
 bool NavMesh::LoadFbx(const std::string& aFile, const Vector2f& aMin, const Vector2f& aMax)
 {
