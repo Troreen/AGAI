@@ -21,13 +21,6 @@ project "Graphics"
 		"External", 
 		"Application", 
 		"Core",
-		"avcodec.lib",
-		"avdevice.lib",
-		"avfilter.lib",
-		"avformat.lib",
-		"avutil.lib",
-		"swscale.lib",
-		"swresample.lib",
 	}
 
 	includedirs {

@@ -6,6 +6,15 @@
 #include <tge/log/Log.h>
 #include <tge/application.h>
 #pragma comment(lib, "winmm.lib")
+// Link FFmpeg when this module is used, rather than merging its import
+// libraries into Graphics.lib (which duplicates FFmpeg's import symbols).
+#pragma comment(lib, "avcodec.lib")
+#pragma comment(lib, "avdevice.lib")
+#pragma comment(lib, "avfilter.lib")
+#pragma comment(lib, "avformat.lib")
+#pragma comment(lib, "avutil.lib")
+#pragma comment(lib, "swscale.lib")
+#pragma comment(lib, "swresample.lib")
 
 #define AUDIO_BUFFER_COUNT 32
 #define AUDIO_BUFFER_SIZE 4096 
