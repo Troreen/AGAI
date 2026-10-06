@@ -71,6 +71,6 @@ private:
     // Maximum movement speed used by all desired-velocity controllers.
     float myMaxSpeed = 250.f;
     float myRotation = 0.f;
-    // Actor size used by the preserved avoidance and containment controllers.
+    // Actor size used when avoiding obstacles and staying inside bounds.
     float myRadius = 25.f;
 };

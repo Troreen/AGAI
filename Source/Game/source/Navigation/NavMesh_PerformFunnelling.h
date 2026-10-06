@@ -1,4 +1,4 @@
-// Adapted from the supplied course funnel: replace HD containers with std::vector.
+// Pull a string through the portals to remove unnecessary path corners.
 // A* builds the directed portals separately so both stages can be inspected.
 enum class VectorRelation
 {

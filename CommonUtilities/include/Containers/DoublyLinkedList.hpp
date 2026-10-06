@@ -61,7 +61,7 @@ namespace CommonUtilities
         bool RemoveLast(const T &aValue);
 
     private:
-        // Add all the private members you need here. 
+        // The list keeps track of its first and last nodes here.
         void LinkBetween(DoublyLinkedListNode<T>* aNewNode, DoublyLinkedListNode<T>* aPrevious, DoublyLinkedListNode<T>* aNext);
         void UnlinkNode(DoublyLinkedListNode<T>* aNode);
 

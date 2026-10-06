@@ -56,7 +56,7 @@ bool NavMesh::GetPortalBetweenNodes(int aFrom, int aTo, NavPortal& aPortal) cons
     const NavTriangle& from = myTriangles[aFrom];
     const NavTriangle& to = myTriangles[aTo];
     // Compare positions, not chunk-local indices: FBX may split shared vertices/chunks.
-    // The course asset also has T-junctions: one edge meets only part of a longer
+    // Some meshes have T-junctions: one edge meets only part of a longer
     // edge. Their common, collinear span is still a valid portal.
     for (int firstEdge = 0; firstEdge < 3; ++firstEdge)
     {

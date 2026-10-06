@@ -38,7 +38,7 @@ struct NavigationPath
 class NavMesh
 {
 public:
-    // TGA converts FBX to Y-up. The course maps (-Z, X) to our 2D world.
+    // TGA imports FBX with Y pointing up. Use (-Z, X) for the 2D ground plane.
     // Fit the file uniformly inside these screen-space bounds (no shape distortion).
     bool LoadFbx(const std::string& aFile, const CommonUtilities::Vector2f& aMin,
                  const CommonUtilities::Vector2f& aMax);

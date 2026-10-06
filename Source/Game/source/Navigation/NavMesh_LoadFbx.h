@@ -40,7 +40,7 @@ bool NavMesh::LoadFbx(const std::string& aFile, const Vector2f& aMin, const Vect
                     return false;
                 }
                 const TGA::FBX::Vertex& vertex = chunk.Vertices[index];
-                // Course loader: imported -Z becomes screen X, imported X becomes screen Y.
+                // Imported -Z becomes screen X, and imported X becomes screen Y.
                 const Vector2f point{-vertex.Position[2], vertex.Position[0]};
                 if (!std::isfinite(point.x) || !std::isfinite(point.y))
                 {

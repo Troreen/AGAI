@@ -127,7 +127,7 @@ ContainmentDebugInfo Controller::GetContainmentDebugInfo(const Actor& aActor) co
     return info;
 }
 
-// --- Earlier assignment: choose and remember a random destination ---
+// --- Choose and remember a random destination ---
 TargetController::TargetController(const TargetControllerData& aData)
     : Controller(aData)
     , myTargetData(aData)

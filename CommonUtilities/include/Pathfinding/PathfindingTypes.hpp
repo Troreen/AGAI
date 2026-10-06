@@ -15,7 +15,7 @@ namespace CommonUtilities
 	};
 
 	// --- A place we can visit, such as one area of a navmesh ---
-	// A* only needs its connections. Your game can keep positions or shapes separately.
+	// A* only needs the connections. Positions and shapes can be stored separately.
 	struct PathfindingNode
 	{
 		// Connections are one-way. Add a connection at both ends for two-way travel.
