@@ -21,6 +21,7 @@ private:
     const NavMesh& myNavMesh;
     std::vector<CommonUtilities::Vector2f> myPoints;
     std::size_t myNextPoint = 1;
-    bool myTurning = false;
-    CommonUtilities::Vector2f GetNextSegmentTarget() const;
+    CommonUtilities::Vector2f myFollowTarget;
+    bool myArriving = false;
+    void ChooseFollowTarget(const CommonUtilities::Vector2f& aPosition);
 };

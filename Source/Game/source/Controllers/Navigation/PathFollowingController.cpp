@@ -3,15 +3,16 @@
 #include "../../Actors/Actor.h"
 #include "../../Navigation/NavMesh.h"
 #include <algorithm>
+#include <limits>
 
 using CommonUtilities::Vector2f;
 
 namespace
 {
-constexpr float cornerClearance = 30.f;
+// Aim this many pixels ahead along the path.
 constexpr float lookAheadDistance = 45.f;
-constexpr float gentleTurnDot = 0.866f; // About 30 degrees; gentler turns keep full speed.
-constexpr float minimumTurnSpeed = 0.65f; // Sharp turns keep at least 65% of the normal speed.
+// Treat a waypoint as reached when we are this close to it.
+constexpr float arrivalDistance = 1.5f;
 }
 
 PathFollowingController::PathFollowingController(const NavMesh& aNavMesh) : myNavMesh(aNavMesh)
@@ -20,29 +21,17 @@ PathFollowingController::PathFollowingController(const NavMesh& aNavMesh) : myNa
 
 void PathFollowingController::SetPath(const std::vector<Vector2f>& somePoints)
 {
+    // Keep the path's corners as they are. Usually point 0 is our starting
+    // position, so point 1 is the first waypoint to reach.
     myPoints = somePoints;
-    // The shortest funnel path can hug a wall. Give each bend some turning
-    // room, but only when both connecting segments still stay on the navmesh.
-    for (std::size_t index = 1; index + 1 < myPoints.size(); ++index)
-    {
-        const Vector2f incoming = (myPoints[index] - myPoints[index - 1]).GetNormalized();
-        const Vector2f outgoing = (myPoints[index + 1] - myPoints[index]).GetNormalized();
-        const float clearance = (std::min)(cornerClearance,
-            (std::min)(myPoints[index].Distance(myPoints[index - 1]),
-                       myPoints[index].Distance(myPoints[index + 1])) * 0.25f);
-        const Vector2f easedCorner = myPoints[index] + (incoming - outgoing).GetNormalized() * clearance;
-        if (myNavMesh.CanTraverseSegment(myPoints[index - 1], easedCorner) &&
-            myNavMesh.CanTraverseSegment(easedCorner, myPoints[index + 1]))
-        {
-            myPoints[index] = easedCorner;
-        }
-    }
-    myNextPoint = 1;
-    myTurning = false;
+    myNextPoint = myPoints.size() == 1 ? 0 : 1;
+    myFollowTarget = myPoints.empty() ? Vector2f{} : myPoints.front();
+    myArriving = true;
 }
 
 bool PathFollowingController::IsFinished() const
 {
+    // There is nothing left to follow once the waypoint index is past the end.
     return myNextPoint >= myPoints.size();
 }
 
@@ -51,94 +40,113 @@ const std::vector<Vector2f>& PathFollowingController::GetPath() const
     return myPoints;
 }
 
-Vector2f PathFollowingController::GetNextSegmentTarget() const
-{
-    const Vector2f corner = myPoints[myNextPoint];
-    const Vector2f next = myPoints[myNextPoint + 1];
-    const float distance = (std::min)(lookAheadDistance, corner.Distance(next));
-    return corner + (next - corner).GetNormalized() * distance;
-}
-
 void PathFollowingController::Update(Actor& aActor, float)
 {
-    myTurning = false;
+    // When we are close enough, finish the last small step to the waypoint.
+    // Check that step is walkable, then stop so incoming velocity cannot
+    // carry us through a wall when we turn at a tight corner.
+    if (!IsFinished() && aActor.GetPosition().Distance(myPoints[myNextPoint]) <= arrivalDistance && myNavMesh.CanTraverseSegment(aActor.GetPosition(), myPoints[myNextPoint]))
+    {
+        aActor.SetPosition(myPoints[myNextPoint]);
+        aActor.Stop();
+        ++myNextPoint;
+        // Stay here for this frame. Choose the next movement target next frame.
+        myFollowTarget = aActor.GetPosition();
+        myArriving = true;
+        return;
+    }
     if (IsFinished())
     {
         aActor.Stop();
         return;
     }
-    const Vector2f corner = myPoints[myNextPoint];
-    if (myNextPoint + 1 < myPoints.size() &&
-        aActor.GetPosition().Distance(corner) <= lookAheadDistance &&
-        myNavMesh.CanTraverseSegment(aActor.GetPosition(), GetNextSegmentTarget()))
+    ChooseFollowTarget(aActor.GetPosition());
+}
+
+void PathFollowingController::ChooseFollowTarget(const Vector2f& aPosition)
+{
+    // Start with a safe fallback: approach the current waypoint and slow down.
+    // We will aim farther ahead only if there is a clear way to get there.
+    myFollowTarget = myPoints[myNextPoint];
+    myArriving = true;
+    // With only one point, there is no path segment to follow. Just arrive there.
+    if (myNextPoint == 0)
     {
-        // Carry our velocity through a bend when there is a clear way around it.
-        ++myNextPoint;
         return;
     }
-    if (aActor.GetPosition().Distance(corner) <= 1.5f &&
-        myNavMesh.CanTraverseSegment(aActor.GetPosition(), corner))
+
+    // Find the closest spot on the part of the path we still have left.
+    // This tells us how far we have actually moved along it; aiming ahead
+    // does not mean we have already reached that part of the path.
+    Vector2f position = myPoints[myNextPoint - 1];
+    float nearestDistance = std::numeric_limits<float>::max();
+    for (std::size_t index = myNextPoint; index < myPoints.size(); ++index)
     {
-        // Tight corners still need an exact arrival. Only stop here when we
-        // could not safely steer onto the next segment, or when reaching the goal.
-        aActor.SetPosition(corner);
-        aActor.Stop();
-        ++myNextPoint;
-        myTurning = true;
+        const Vector2f start = myPoints[index - 1];
+        const Vector2f segment = myPoints[index] - start;
+        const float lengthSqr = segment.LengthSqr();
+        // "amount" says where we are along this segment: 0 is its start,
+        // 1 is its end. Clamp keeps the closest spot between those endpoints.
+        // A repeated waypoint has no length, so use its starting point.
+        const float amount = lengthSqr > 0.f ? std::clamp((aPosition - start).Dot(segment) / lengthSqr, 0.f, 1.f) : 0.f;
+        const Vector2f projection = start + segment * amount;
+        const float distance = aPosition.DistanceSqr(projection);
+        // Accept a closer spot only if both it and the segment's endpoint
+        // are reachable. Otherwise we could skip a corner around a wall.
+        if (distance <= nearestDistance && myNavMesh.CanTraverseSegment(aPosition, projection) && myNavMesh.CanTraverseSegment(aPosition, myPoints[index]))
+        {
+            nearestDistance = distance;
+            position = projection;
+            myNextPoint = index;
+        }
+    }
+    myFollowTarget = myPoints[myNextPoint];
+
+    // From that closest spot, move the target lookAheadDistance pixels forward along the path.
+    // If a segment is too short, spend the leftover distance on the next one.
+    float remaining = lookAheadDistance;
+    std::size_t targetSegment = myNextPoint;
+    while (targetSegment < myPoints.size())
+    {
+        const Vector2f toEnd = myPoints[targetSegment] - position;
+        const float distance = toEnd.Length();
+        if (distance > remaining)
+        {
+            // The target fits on this segment. Move partway along it and finish.
+            position += toEnd * (remaining / distance);
+            break;
+        }
+        position = myPoints[targetSegment];
+        remaining -= distance;
+        // Stop at the destination if the path ends before we use all lookAheadDistance pixels.
+        if (targetSegment + 1 == myPoints.size())
+        {
+            break;
+        }
+        ++targetSegment;
+    }
+
+    // We steer directly towards the target, so the whole shortcut must be
+    // walkable. If it crosses a wall, keep the fallback waypoint chosen above.
+    if (myNavMesh.CanTraverseSegment(aPosition, position))
+    {
+        myFollowTarget = position;
+        // Slow down when following the final segment towards the destination.
+        myArriving = targetSegment + 1 == myPoints.size();
     }
 }
 
 Vector2f PathFollowingController::GetDesiredVelocity(const Actor& aActor) const
 {
-    if (IsFinished() || myTurning)
+    if (IsFinished())
     {
         return {};
     }
-    const Vector2f start = myPoints[myNextPoint - 1];
-    const Vector2f end = myPoints[myNextPoint];
-    const Vector2f segment = end - start;
-    const float length = segment.Length();
-    if (length <= 0.001f)
-    {
-        return {};
-    }
-
-    // Project our future position onto the active segment, then seek a little
-    // farther along it. Cross a bend only when the whole shortcut is walkable.
-    const Vector2f future = aActor.GetPosition() + aActor.GetVelocity() * 0.2f;
-    const float along = std::clamp((future - start).Dot(segment) / length, 0.f, length);
-    const float lookAhead = (std::min)(along + lookAheadDistance, length);
-    Vector2f target = start + segment * (lookAhead / length);
-    const bool hasNextSegment = myNextPoint + 1 < myPoints.size();
-    bool canRoundCorner = false;
-    if (hasNextSegment && length - along <= lookAheadDistance)
-    {
-        const Vector2f nextTarget = GetNextSegmentTarget();
-        canRoundCorner = myNavMesh.CanTraverseSegment(aActor.GetPosition(), nextTarget);
-        if (canRoundCorner)
-        {
-            target = nextTarget;
-        }
-    }
-    if (!myNavMesh.CanTraverseSegment(aActor.GetPosition(), target))
-    {
-        target = end;
-    }
-    // Ordinary bends are passing points, not destinations. Brake only for the
-    // goal or a corner that has no walkable shortcut onto its next segment.
-    const Vector2f direction = (target - aActor.GetPosition()).GetNormalized();
-    float speed = !hasNextSegment || !canRoundCorner
-        ? ControllerUtils::ArriveDesiredVelocity(aActor, end, lookAheadDistance).Length()
-        : aActor.GetMaxSpeed();
-    if (aActor.GetVelocity().LengthSqr() > 1.f)
-    {
-        // Ease off while our movement direction turns towards the look-ahead
-        // target. As we line up again, the normal speed comes back gradually.
-        const float alignment = aActor.GetVelocity().GetNormalized().Dot(direction);
-        const float sharpness = std::clamp((gentleTurnDot - alignment) / gentleTurnDot, 0.f, 1.f);
-        speed *= 1.f - sharpness * (1.f - minimumTurnSpeed);
-    }
-    return direction * speed;
+    // Arrive reduces speed as we get close; Seek moves at normal speed.
+    // Actor turns this desired velocity into steering and actual movement.
+    return myArriving
+        ? ControllerUtils::ArriveDesiredVelocity(aActor, myFollowTarget, lookAheadDistance)
+        : ControllerUtils::SeekDesiredVelocity(aActor, myFollowTarget);
 }
 
 ControllerDebugInfo PathFollowingController::GetDebugInfo() const
@@ -146,8 +154,9 @@ ControllerDebugInfo PathFollowingController::GetDebugInfo() const
     ControllerDebugInfo info;
     if (!IsFinished())
     {
+        // Show the point we are steering towards, which may be between waypoints.
         info.hasTarget = true;
-        info.targetPosition = myPoints[myNextPoint];
+        info.targetPosition = myFollowTarget;
     }
     return info;
 }

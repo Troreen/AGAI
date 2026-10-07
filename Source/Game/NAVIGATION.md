@@ -1,143 +1,254 @@
-# U04: NavMesh and Companion
+# U04 navigation implementation
 
-Build `GameMain` in `Game.sln` with Debug or Release, x64. Run from `Bin` so
-the engine can find settings and assets. Left-click anywhere outside the debug
-panel: the player arrives at that exact point, and the companion follows a
-smoothed route to the nearest point on the navmesh.
+The navigation code loads a triangle mesh, plans a route to the player's requested
+target, and moves the companion along the resulting waypoints. This guide follows
+that implementation from loading through per-frame movement.
 
-## The flow to explain in the code review
+## Data and ownership
 
-1. `NavMesh_LoadFbx.h` adapts the supplied teacher loader. TGA's FBX importer
-   reads the file and triangulates it, then each triangle becomes one node.
-   The teacher's `(-Position[2], Position[0])` conversion maps the imported ground
-   plane to screen X/Y. We uniformly fit the bounds into the actual drawable
-   window, using pixel coordinates instead of the teacher's normalized-space helpers.
-2. `Navigation/NavMesh.cpp::SetConnections` finds shared edges and adds a connection
-   in both directions. Each cost is the distance between triangle centres.
-   The main course asset has T-junctions, so collinear partial edges also connect
-   through their common span. Triangles that touch only at a point do not connect.
-3. `FindPath` first resolves the target. An interior point stays unchanged. For an
-   exterior point, projecting onto every triangle edge and choosing the nearest
-   candidate finds the closest position on the whole mesh. This includes holes,
-   concave boundaries, and corners, not just the mesh's bounding rectangle.
-4. The existing `CommonUtilities::AStar` searches those connections. Both the
-   movement cost and heuristic use centre distance. `nodes` retains the route;
-   `rawPoints` retains start, triangle centres, and the resolved goal for drawing.
-5. `GetPortalBetweenNodes` orders each shared edge into left and right as seen
-   travelling from the previous node to the next. These directed `portals` remain
-   available for debugging independently of the path points.
-6. `NavMesh_PerformFunnelling.h` adapts the supplied teacher funnel using
-   `std::vector` and the project's vectors. `GetVectorRelation` uses the 2D cross
-   product. Narrowing the funnel removes unnecessary centre points; when one side
-   crosses the other, we add the opposite corner as a new apex. After choosing an
-   apex, both sides restart at the next usable portal. A route inside one triangle
-   goes directly from start to goal. The raw path is never overwritten.
-7. `PathFollowingController` gives internal funnel corners up to 30 pixels of
-   turning room when both connecting segments remain walkable. The original
-   funnel result stays in `NavigationPath`; the controller owns its follow path.
-   It projects a predicted position onto the active segment and looks 45 pixels
-   ahead, including onto the next segment when the entire shortcut is walkable.
-   It carries velocity through these bends instead of arriving at every point.
-   The existing Arrive helper brakes for the goal and corners that cannot safely
-   be rounded. `Actor` still handles steering forces, acceleration, speed limits,
-   rotation, and rendering. The green debug line shows the actual follow path.
-8. `GameWorld04_NavMesh::Update` checks the companion's complete movement segment after
-   Actor integration. Triangle clipping finds how much of that segment is covered
-   by the mesh, and movement stops at the first uncovered point. Checking only the
-   endpoint would allow a large frame step to jump over a hole. The player gets
-   no such restriction.
+[NavMesh.h](source/Navigation/NavMesh.h) defines the navigation data:
 
-Navigation constrains the companion's **position/centre**. As discussed in F05,
-the shortest funnel can touch a boundary or corner. The follower adds turning
-room where possible, but the sprite itself can still overlap that boundary. This assignment does not add radius-based mesh erosion or physics.
+- `NavTriangle` stores three 2D vertices and their centre.
+- `NavPortal` stores a shared edge's left and right endpoints, ordered for a
+  particular direction of travel.
+- `NavMesh` owns the triangles, graph connections, and load error.
+- `NavigationPath` stores one planning result.
 
-## Files and ownership
+The triangle and graph arrays use matching indices: graph node `i` represents
+triangle `i`. A graph connection stores a neighbouring triangle's index and the
+distance between their centres.
 
-`GameWorld04_NavMesh` owns the navmesh, path result, and ActorManager. Each Actor owns its
-controller using the project's existing ownership scheme. The companion controller
-borrows the navmesh, which outlives the actors. A path result owns its vectors and
-uses triangle indices, so it holds no pointers into a reloaded mesh.
+The path result keeps each planning stage available separately:
 
-Gameplay's small query API is `ClosestPoint`, `FindPath`, `FindTriangle`,
-`CanTraverseSegment`, and `ConstrainMovement`. Gameplay does not implement A*
-or funneling. A result keeps its requested/resolved targets, start/goal triangle
-indices, raw node route, portals, smooth points, and failure text.
+| Field | Use in this implementation |
+| --- | --- |
+| `requestedTarget` | The position requested by the player controller. |
+| `resolvedTarget` | The destination after resolving it onto the mesh. |
+| `startTriangle` / `goalTriangle` | Indices used as the A* start and goal. |
+| `nodes` | A*'s ordered triangle indices, including start and goal. |
+| `rawPoints` | Start position, route triangle centres, and resolved destination. |
+| `portals` | Directed shared edges between consecutive route triangles. |
+| `smoothPoints` | Funnel waypoints passed to the path-following controller. |
+| `error` | The reason planning failed, if any. |
 
-The engine importer is shared with TGE's model loading, so this loader leaves its
-initialization under the existing engine lifecycle. It does not shut down the
-importer while the engine is still using it. No Recast or editor navmesh system
-is used by this game implementation.
+`Succeeded()` requires an empty error string and a nonempty `smoothPoints` array.
 
-## Debugging and assets
+`GameWorld04_NavMesh` owns the mesh, current path result, and ActorManager.
+The companion Actor owns its `PathFollowingController`. That controller borrows
+the mesh through a const reference, so the mesh must outlive the controller.
+Path results and controllers own their point arrays; triangle references in a
+path result are indices rather than pointers.
 
-The supplied files are in
-`EngineAssets/Models/NavMesh_Models/NavMesh_Models/`. The main asset imports as
-166 triangles; the simpler debug asset imports as 10 triangles. The ImGui panel
-lets you select and reload either file. A failed reload retains the previous
-usable mesh and shows the error. A successful reload resolves the companion's
-current position onto the new mesh and calculates a fresh path.
+## Loading and preparing the mesh
 
-The panel provides independent toggles for triangles, nodes, connections, raw
-path, smoothed path, portals, and targets. Select a node to highlight its triangle
-and connections and read their costs. Start triangles are blue, goal triangles
-pink, raw paths orange, and smoothed paths green. Portal endpoints show left in
-blue and right in pink. The requested target is yellow; the resolved target is
-green. Lengths and boundary-correction counts help distinguish path and movement
-problems. Debug drawing is available in Debug and Release, as in the existing
-project; Retail omits the debug UI/drawing.
+[NavMesh_LoadFbx.h](source/Navigation/NavMesh_LoadFbx.h) implements `LoadFbx`.
+It is included by [NavMesh.cpp](source/Navigation/NavMesh.cpp), where its geometry
+helpers are defined.
 
-The main FBX contains a separate 12-triangle island. There is no walkable link to
-it. If the globally closest target lies there while the companion is on the main
-region, A* reports no connected route and the companion stops. The requested and
-resolved targets remain visible. We do not teleport or invent a connection across
-empty space. The smaller debug mesh is fully connected.
+The loader builds a temporary `NavMesh` before replacing the current data:
 
-## Checks performed
+1. Initialize the shared TGA FBX importer and import with triangulation enabled.
+2. Read each polygon into a `NavTriangle`. Reject non-triangles, invalid vertex
+   indices, and non-finite positions.
+3. Convert imported positions to 2D using `{-Position[2], Position[0]}`,
+   giving the `(-Z, X)` ground-plane mapping.
+4. Calculate the mesh bounds and fit them into the supplied screen-space bounds.
+   Use the smaller of the X and Y scale factors for both axes, then centre the
+   result in the available area.
+5. Reject degenerate triangles, reverse clockwise vertex order, and calculate
+   each centre as the average of its three vertices.
+6. Build graph connections, then move the completed data into the current mesh.
 
-- Debug and Release GameMain builds with `/W4` and `/WX`.
-- All centre-to-centre queries on both assets: 23,960 reachable routes; every
-  smoothed segment stayed on the mesh and no smoothed route was longer than raw.
-- Off-mesh screen samples resolved to valid positions, including boundary targets.
-- Real TGE renderer and Actor/controller integration: the player reached interior
-  and off-mesh targets; 171 reachable companion routes completed at 60, 30, and
-  10 Hz without off-mesh movement or stalls. Target changes while moving were checked.
-- GPU frame capture confirmed the navmesh, actors, targets, and both path drawings.
-- The reusable event delivery/unregistering and polling cache refresh behaviour
-  passed small temporary C++ checks. No separate test game or headless mode was added.
+A failed load sets `myLoadError` and leaves the previous mesh data intact.
+A successful load clears that error. The importer remains initialized because
+it is shared with engine model loading.
 
-The rules come from [the U04 assignment](../../Doc/U04_NavMesh_och_Companion.pdf).
-[F05 Navigation](../../Doc/F05_Navigation.pdf) explains the graph, funnel, and
-path-following approach. Reusable events/polling are documented in
-[CommonUtilities](../../CommonUtilities/AI_UTILITIES.md).
+### Building connections and portals
 
-## Continuous corner movement check (2026-10-06)
+`SetConnections` checks every triangle pair once. For each pair,
+`GetPortalBetweenNodes` compares their edges by position, rather than imported
+vertex indices. This handles shared geometry split across FBX chunks.
 
-Temporary movement checks used the real NavMesh, Actor integration, and both
-course meshes at 60, 30, and 10 FPS. All 78 reachable routes finished on the mesh.
-Intermediate corner stops dropped from 147 with the previous controller to zero
-with the new controller; boundary corrections dropped from 20 to 10. All 57
-target changes while moving remained walkable and the final targets were reached.
-These are movement checks, not a visual assessment of how the game feels.
+The edge comparison requires collinear edges, triangle centres on opposite sides
+of the edge, and an overlap longer than `pointTolerance`. It accepts partial
+overlaps for the course mesh's T-junctions and rejects point-only contact.
 
-`cornerClearance` and `lookAheadDistance` at the top of PathFollowingController.cpp
-are the two tuning values. Clearance moves a bend away from its wall only when
-the incoming and outgoing segments remain valid. Look-ahead starts steering
-onto the next segment early when the connecting segment is valid. Neither
-changes the requested destination, A* search, funnel output, or boundary check.
+For a connected pair, `SetConnections` adds connections in both directions.
+Both costs use the distance between the triangle centres.
 
-## Turn-based speed
+`GetPortalBetweenNodes` also orders the overlap endpoints. It uses the direction
+from the source triangle's centre to the destination triangle's centre and a
+cross product to determine left and right. Calling it in the reverse direction
+therefore gives the portal the opposite orientation.
 
-The follower compares its current movement direction with the direction towards
-its look-ahead target. Turns under roughly 30 degrees keep normal speed. Sharper
-turns progressively reduce desired speed, reaching 65% at 90 degrees or more.
-Speed returns as the companion lines up with its target. Final arrival and tight
-corner braking still apply; the turn multiplier does not introduce another stop.
+## Planning a path
 
-`gentleTurnDot` and `minimumTurnSpeed` at the top of PathFollowingController.cpp
-control this rule. It changes desired speed only; path generation, facing, mass,
-acceleration settings, and navmesh constraints are unchanged.
+`NavMesh::FindPath` in [NavMesh.cpp](source/Navigation/NavMesh.cpp) performs
+the complete planning operation and returns a `NavigationPath`.
 
-Turn-speed checks confirmed 100% desired speed at 0/20 degrees, 85.2% at
-60 degrees, and 65% at 90/180 degrees. All 78 route checks and 57 target
-changes passed again, with no intermediate corner stops or off-mesh movement.
-Debug and Release GameMain builds passed.
+### Resolve the start and destination
+
+`FindTriangle` scans the triangle array and calls `Contains`. Because loading
+ensures counterclockwise vertex order, `Contains` can test the point against
+each edge's inside half-plane. Small errors near an edge are accepted using
+`pointTolerance`. The result is a triangle index, or `-1`.
+
+`FindPath` uses this query for the start. It does not relocate an off-mesh start;
+that makes planning fail.
+
+For the destination, `ClosestPoint` first calls `FindTriangle`. An interior
+target stays unchanged. Otherwise, it projects the target onto every triangle
+edge, clamps each projection to the edge endpoints, and keeps the candidate
+with the smallest squared distance. The result supplies both `resolvedTarget`
+and `goalTriangle`.
+
+This chooses the closest point on the whole mesh, regardless of connectivity.
+If that point lies on a disconnected island, the following A* stage can fail.
+
+### Search the graph
+
+`FindPath` calls [CommonUtilities::AStar](../../CommonUtilities/include/Pathfinding/AStar.hpp)
+with `myGraph`, `startTriangle`, and `goalTriangle`. Its heuristic lambda
+returns the distance between the supplied triangles' centres, matching the
+centre-distance units used by connection costs.
+
+A* returns the ordered node indices. An empty result sets a path error and ends
+planning. A successful result is saved in `nodes`; `rawPoints` is then built
+from the start position, each route triangle's centre, and the resolved target.
+
+The search minimizes graph costs. The final waypoint path is smoothed within
+that selected route; the implementation does not search every possible corridor
+for a globally shortest geometric path.
+
+### Build portals and funnel them
+
+For each consecutive pair of route nodes, `FindPath` calls
+`GetPortalBetweenNodes` and appends the directed portal to `portals`.
+A missing shared edge sets an error and ends planning.
+
+`PerformFunnelling` in
+[NavMesh_PerformFunnelling.h](source/Navigation/NavMesh_PerformFunnelling.h)
+then produces `smoothPoints`:
+
+- Start with the start position as the apex and the first portal as the
+  left/right limits. Append a zero-width goal portal to process the destination.
+- For each subsequent portal, test its sides against the existing limits using
+  `GetVectorRelation`, which checks the sign of the 2D cross product.
+- Tighten a limit when the new side narrows the funnel without crossing the
+  opposite side.
+- When a side crosses the opposite limit, append the opposite endpoint as a
+  waypoint and use it as the new apex. Restart at the next portal whose
+  corresponding endpoint differs from that apex.
+- Append the goal if the final point is not already within `pointTolerance`.
+
+With no portals, the result is simply start and goal.
+
+Finally, `FindPath` checks every smoothed segment with `CanTraverseSegment`.
+An invalid segment sets an error and clears `smoothPoints`. Raw points and
+portals remain available for inspection.
+
+## Following the path
+
+[PathFollowingController.cpp](source/Controllers/Navigation/PathFollowingController.cpp)
+copies `smoothPoints` in `SetPath`, without changing their corners.
+`myNextPoint` normally starts at 1 because point 0 is the start position.
+A single-point path starts at 0; an empty path is already finished.
+
+### Update and waypoint completion
+
+`Update` first checks whether the Actor is within `arrivalDistance`
+(1.5 pixels) of the active waypoint and can reach it directly.
+If so, it places the Actor exactly there, stops it, and increments
+`myNextPoint`. It keeps the steering target at the Actor's position for
+that frame, then returns.
+
+This lets boundary corners finish before movement turns onto the next segment.
+Otherwise, a finished path stops the Actor, and an unfinished path calls
+`ChooseFollowTarget`.
+
+### Select progress and a look-ahead target
+
+`ChooseFollowTarget` initially selects the active waypoint with Arrive enabled.
+That remains the fallback if a look-ahead shortcut is blocked.
+
+To determine progress, it scans the remaining segments and computes a clamped
+projection for each:
+
+```cpp
+amount = clamp(dot(position - start, segment) / lengthSquared, 0, 1);
+projection = start + segment * amount;
+```
+
+This is the calculation used in the code, with a zero-length guard for repeated
+waypoints. Candidates are compared using squared distance to the Actor.
+A candidate is accepted only if both its projection and its segment endpoint
+are directly traversable. The nearest accepted candidate updates the active
+segment through `myNextPoint`. Equal distances favour the later candidate.
+
+Starting from that projection, the controller walks `lookAheadDistance`
+(currently 45 pixels) along the remaining segments. It subtracts the distance
+used on each segment and carries the remainder onto the next, stopping at the
+destination if the path ends first.
+
+This calculation chooses an aiming point; it does not advance `myNextPoint`
+to that aiming point's segment. Progress comes from the projection search.
+
+The controller uses the look-ahead point only if `CanTraverseSegment` accepts
+the direct shortcut from the Actor to it. Otherwise, it keeps the active
+waypoint as its target.
+
+### Produce desired velocity
+
+`GetDesiredVelocity` returns zero for a finished path. Otherwise it calls:
+
+- `ArriveDesiredVelocity` when using the fallback waypoint or when the
+  look-ahead point is on the final segment.
+- `SeekDesiredVelocity` for other accepted look-ahead targets.
+
+Arrive uses `lookAheadDistance` as its slowing distance.
+The controller supplies desired velocity; `Actor` computes steering, applies
+force and speed limits, and integrates movement. `GetDebugInfo` exposes the
+current steering target, which can lie between waypoints.
+
+## Checking movement against the mesh
+
+`CanTraverseSegment` and `ConstrainMovement` both use
+`NavMesh::TraversableFraction`. This checks the entire movement segment, so
+a step cannot cross a hole just because its endpoint is on the mesh.
+
+`TraversableFraction` clips the segment against each triangle. Each intersection
+produces an entry/exit interval between 0 and 1 along the movement.
+It sorts those intervals and merges coverage from the start until the first gap.
+The resulting fraction indicates how much of the requested movement is covered.
+
+`CanTraverseSegment` requires the start to be on the mesh and coverage to reach 1.
+`ConstrainMovement` returns the proposed endpoint for complete coverage.
+Otherwise, it stops slightly before the uncovered part, using `pointTolerance`
+to leave room for floating-point error.
+
+The constraint applies to the Actor's centre. It does not account for sprite
+size or erode the mesh for the Actor's radius.
+
+## Connecting planning and movement in the world
+
+[GameWorld04_NavMesh.cpp](source/Worlds/04_NavMesh/GameWorld04_NavMesh.cpp)
+coordinates navigation:
+
+1. Initialization loads the mesh and uses `ClosestPoint` to place the companion.
+2. Each update reads the player controller's requested target. If it changed,
+   `PlanCompanionPath` plans from the companion's current position and gives
+   `smoothPoints` to its controller. A failed plan stops the companion.
+3. For a successful path, save the companion's position and call its
+   `Actor::Update`.
+4. Constrain the segment from the saved position to the proposed position.
+   If corrected, apply the constrained position, stop the companion, and
+   increment `myMovementCorrections`.
+
+Planning happens when the requested target changes or the mesh is successfully
+reloaded, rather than on every movement frame. A successful reload resolves
+the companion's current position onto the new mesh before replanning.
+The player is updated separately and receives no navmesh movement constraint.
+
+The world's rendering code draws `rawPoints` in orange, the controller's copied
+waypoints in green, and the stored portals and requested/resolved targets.
+These arrays are retained so planning stages can be inspected independently.
