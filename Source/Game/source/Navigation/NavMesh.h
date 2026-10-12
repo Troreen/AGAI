@@ -41,11 +41,11 @@ class NavMesh
 public:
     // TGA imports FBX with Y pointing up. Use (-Z, X) for the 2D ground plane.
     // Fit the file uniformly inside these screen-space bounds (no shape distortion).
-    bool LoadFbx(const std::string& aFile, const CommonUtilities::Vector2f& aMin, const CommonUtilities::Vector2f& aMax);
+    bool LoadFbx(const std::string& aFilePath, const CommonUtilities::Vector2f& aScreenMin, const CommonUtilities::Vector2f& aScreenMax);
     
     int FindTriangle(const CommonUtilities::Vector2f& aPoint) const;
     
-    bool ClosestPoint(const CommonUtilities::Vector2f& aPoint, CommonUtilities::Vector2f& aResult, int& aTriangle) const;
+    bool ClosestPoint(const CommonUtilities::Vector2f& aPoint, CommonUtilities::Vector2f& aClosestPoint, int& aTriangleIndex) const;
     
     NavigationPath FindPath(const CommonUtilities::Vector2f& aStart, const CommonUtilities::Vector2f& aTarget) const;
 
@@ -60,7 +60,7 @@ public:
 
 private:
     void SetConnections();
-    bool GetPortalBetweenNodes(int aFrom, int aTo, NavPortal& aPortal) const;
+    bool GetPortalBetweenNodes(int aFromTriangleIndex, int aToTriangleIndex, NavPortal& aPortal) const;
 
     std::vector<CommonUtilities::Vector2f> PerformFunnelling(
         const CommonUtilities::Vector2f& aStart, const CommonUtilities::Vector2f& aGoal, const std::vector<NavPortal>& somePortals) const;

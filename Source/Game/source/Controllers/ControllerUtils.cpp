@@ -6,14 +6,15 @@
 // --- Head straight towards a position at full speed ---
 CommonUtilities::Vector2f ControllerUtils::SeekDesiredVelocity(const Actor& aActor, const CommonUtilities::Vector2f& aTarget)
 {
-    const CommonUtilities::Vector2f toTarget = aTarget - aActor.GetPosition();
-    const float distanceToTarget = toTarget.Length();
+    const CommonUtilities::Vector2f offsetToTarget = aTarget - aActor.GetPosition();
+    const float distanceToTarget = offsetToTarget.Length();
     if (distanceToTarget <= 0.0001f)
     {
         return {};
     }
 
-    return (toTarget / distanceToTarget) * aActor.GetMaxSpeed();
+    // Use the direction towards the target, with the actor's full movement speed.
+    return (offsetToTarget / distanceToTarget) * aActor.GetMaxSpeed();
 }
 
 // --- Head away from a position instead ---
@@ -30,18 +31,19 @@ CommonUtilities::Vector2f ControllerUtils::SteerTowards(const Actor& aActor, con
 }
 
 // --- Head towards a position, but slow down near it ---
-// The player and all four guards use this same arrival rule.
+// Controllers use this when they should slow down near their destination.
 CommonUtilities::Vector2f ControllerUtils::ArriveDesiredVelocity(const Actor& aActor, const CommonUtilities::Vector2f& aTarget, float aSlowDownDistance)
 {
-    const CommonUtilities::Vector2f toTarget = aTarget - aActor.GetPosition();
-    const float distance = toTarget.Length();
-    if (distance <= 0.0001f)
+    const CommonUtilities::Vector2f offsetToTarget = aTarget - aActor.GetPosition();
+    const float distanceToTarget = offsetToTarget.Length();
+    if (distanceToTarget <= 0.0001f)
     {
         return {};
     }
 
+    // Keep the slowing distance above zero so the speed calculation can divide by it.
     const float safeSlowDownDistance = (std::max)(aSlowDownDistance, 0.0001f);
     // Far away means full speed. Inside the slowing distance, closer means slower.
-    const float desiredSpeed = aActor.GetMaxSpeed() * (std::min)(distance / safeSlowDownDistance, 1.f);
-    return toTarget.GetNormalized() * desiredSpeed;
+    const float desiredSpeed = aActor.GetMaxSpeed() * (std::min)(distanceToTarget / safeSlowDownDistance, 1.f);
+    return offsetToTarget.GetNormalized() * desiredSpeed;
 }

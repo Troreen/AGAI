@@ -1,93 +1,102 @@
 // Included once by Navigation/NavMesh.cpp, after its geometry helpers.
-bool NavMesh::LoadFbx(const std::string& aFile, const Vector2f& aMin, const Vector2f& aMax)
+bool NavMesh::LoadFbx(const std::string& aFilePath, const Vector2f& aScreenMin, const Vector2f& aScreenMax)
 {
     // Build in a temporary mesh. A failed reload leaves the current mesh usable.
-    NavMesh loaded;
-    TGA::FBX::NavMesh imported;
+    NavMesh loadedMesh;
+    TGA::FBX::NavMesh importedMesh;
     try
     {
+        // Read the file and ask the importer to split its shapes into triangles.
         TGA::FBX::Importer::InitImporter();
-        if (!TGA::FBX::Importer::LoadNavMeshA(aFile, imported, true))
+        if (!TGA::FBX::Importer::LoadNavMeshA(aFilePath, importedMesh, true))
         {
-            myLoadError = "Could not load " + aFile + ": " + TGA::FBX::Importer::GetLastError();
+            myLoadError = "Could not load " + aFilePath + ": " + TGA::FBX::Importer::GetLastError();
             return false;
         }
     }
     catch (const std::exception& error)
     {
-        myLoadError = "Could not load " + aFile + ": " + error.what();
+        myLoadError = "Could not load " + aFilePath + ": " + error.what();
         return false;
     }
 
-    Vector2f minimum{std::numeric_limits<float>::max(), std::numeric_limits<float>::max()};
-    Vector2f maximum{std::numeric_limits<float>::lowest(), std::numeric_limits<float>::lowest()};
-    for (const TGA::FBX::NavMesh::NavMeshChunk& chunk : imported.Chunks)
+    // Collect the ground positions and track the outer bounds of the imported mesh.
+    Vector2f meshMin{std::numeric_limits<float>::max(), std::numeric_limits<float>::max()};
+    Vector2f meshMax{std::numeric_limits<float>::lowest(), std::numeric_limits<float>::lowest()};
+    for (const TGA::FBX::NavMesh::NavMeshChunk& meshChunk : importedMesh.Chunks)
     {
-        for (const TGA::FBX::NavMesh::NavMeshPolygon& polygon : chunk.Polygons)
+        for (const TGA::FBX::NavMesh::NavMeshPolygon& meshPolygon : meshChunk.Polygons)
         {
-            if (polygon.Indices.size() != 3)
+            // Every walkable piece must have exactly three valid corners.
+            if (meshPolygon.Indices.size() != 3)
             {
                 myLoadError = "Navmesh must contain only triangles. Triangulate before exporting.";
                 return false;
             }
             NavTriangle triangle;
-            for (int corner = 0; corner < 3; ++corner)
+            for (int cornerIndex = 0; cornerIndex < 3; ++cornerIndex)
             {
-                const unsigned int index = polygon.Indices[corner];
-                if (index >= chunk.Vertices.size())
+                const unsigned int vertexIndex = meshPolygon.Indices[cornerIndex];
+                if (vertexIndex >= meshChunk.Vertices.size())
                 {
                     myLoadError = "Navmesh contains an invalid vertex index.";
                     return false;
                 }
-                const TGA::FBX::Vertex& vertex = chunk.Vertices[index];
+                const TGA::FBX::Vertex& importedVertex = meshChunk.Vertices[vertexIndex];
                 // Imported -Z becomes screen X, and imported X becomes screen Y.
-                const Vector2f point{-vertex.Position[2], vertex.Position[0]};
-                if (!std::isfinite(point.x) || !std::isfinite(point.y))
+                const Vector2f groundPosition{-importedVertex.Position[2], importedVertex.Position[0]};
+                if (!std::isfinite(groundPosition.x) || !std::isfinite(groundPosition.y))
                 {
                     myLoadError = "Navmesh contains a non-finite position.";
                     return false;
                 }
-                triangle.vertices[corner] = point;
-                minimum.x = (std::min)(minimum.x, point.x);
-                minimum.y = (std::min)(minimum.y, point.y);
-                maximum.x = (std::max)(maximum.x, point.x);
-                maximum.y = (std::max)(maximum.y, point.y);
+                triangle.vertices[cornerIndex] = groundPosition;
+                meshMin.x = (std::min)(meshMin.x, groundPosition.x);
+                meshMin.y = (std::min)(meshMin.y, groundPosition.y);
+                meshMax.x = (std::max)(meshMax.x, groundPosition.x);
+                meshMax.y = (std::max)(meshMax.y, groundPosition.y);
             }
-            loaded.myTriangles.push_back(triangle);
+            loadedMesh.myTriangles.push_back(triangle);
         }
     }
 
-    const Vector2f extent = maximum - minimum;
-    const Vector2f available = aMax - aMin;
-    if (loaded.myTriangles.empty() || extent.x <= 0.f || extent.y <= 0.f ||
-        available.x <= 0.f || available.y <= 0.f)
+    // Make sure the mesh and its intended screen area both have usable sizes.
+    const Vector2f meshSize = meshMax - meshMin;
+    const Vector2f availableScreenSize = aScreenMax - aScreenMin;
+    if (loadedMesh.myTriangles.empty() || meshSize.x <= 0.f || meshSize.y <= 0.f ||
+        availableScreenSize.x <= 0.f || availableScreenSize.y <= 0.f)
     {
         myLoadError = "Empty navmesh or invalid X/Z ground-plane bounds.";
         return false;
     }
-    const float scale = (std::min)(available.x / extent.x, available.y / extent.y);
-    const Vector2f offset = aMin + (available - extent * scale) * 0.5f;
-    for (NavTriangle& triangle : loaded.myTriangles)
+    // Fit the mesh into the screen area without stretching it, then centre it.
+    const float screenScale = (std::min)(availableScreenSize.x / meshSize.x, availableScreenSize.y / meshSize.y);
+    const Vector2f screenOffset = aScreenMin + (availableScreenSize - meshSize * screenScale) * 0.5f;
+    for (NavTriangle& triangle : loadedMesh.myTriangles)
     {
-        for (Vector2f& vertex : triangle.vertices)
+        for (Vector2f& vertexPosition : triangle.vertices)
         {
-            vertex = offset + (vertex - minimum) * scale;
+            vertexPosition = screenOffset + (vertexPosition - meshMin) * screenScale;
         }
-        const float area = Area(triangle.vertices[0], triangle.vertices[1], triangle.vertices[2]);
-        if (std::abs(area) <= pointTolerance)
+        // Reject flattened triangles, which have no walkable space inside them.
+        const float signedTriangleArea = Area(triangle.vertices[0], triangle.vertices[1], triangle.vertices[2]);
+        if (std::abs(signedTriangleArea) <= pointTolerance)
         {
             myLoadError = "Navmesh contains a degenerate ground-plane triangle.";
             return false;
         }
-        if (area < 0.f)
+        // Put all corners in counterclockwise order so inside/outside checks agree.
+        if (signedTriangleArea < 0.f)
         {
             std::swap(triangle.vertices[1], triangle.vertices[2]); // All triangles counter-clockwise.
         }
+        // Average the three corners to get a centre for path planning.
         triangle.centre = (triangle.vertices[0] + triangle.vertices[1] + triangle.vertices[2]) / 3.f;
     }
-    loaded.SetConnections();
-    myTriangles = std::move(loaded.myTriangles);
-    myGraph = std::move(loaded.myGraph);
+    // Connect the triangles, then replace the current mesh only after everything succeeds.
+    loadedMesh.SetConnections();
+    myTriangles = std::move(loadedMesh.myTriangles);
+    myGraph = std::move(loadedMesh.myGraph);
     myLoadError.clear();
     return true;
 }

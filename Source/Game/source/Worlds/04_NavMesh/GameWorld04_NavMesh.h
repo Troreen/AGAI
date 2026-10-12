@@ -20,7 +20,7 @@ public:
     GameWorld04_NavMesh();
     ~GameWorld04_NavMesh() override;
     void Init(const CommonUtilities::InputHandler& aInput) override;
-    void Update(float aTimeDelta) override;
+    void Update(float aDeltaTime) override;
     void Render() override;
     Actor& GetPlayer();
 
@@ -37,7 +37,7 @@ private:
     PlayerController* myPlayerController = nullptr; // Owned by the player Actor.
     PathFollowingController* myCompanionController = nullptr; // Owned by the companion Actor.
     CommonUtilities::Vector2f myRequestedTarget;
-    std::array<std::unique_ptr<Tga::Text>, 2> myLabels;
+    std::array<std::unique_ptr<Tga::Text>, 2> myActorLabels;
 
     bool myShowNavMesh = true;
     bool myShowNodes = true;
@@ -46,7 +46,7 @@ private:
     bool myShowSmoothPath = true;
     bool myShowPortals = false;
     bool myShowTargets = true;
-    int mySelectedNode = -1;
-    int myNavMeshAsset = 0;
+    int mySelectedTriangleIndex = -1;
+    int myNavMeshAssetIndex = 0;
     unsigned int myMovementCorrections = 0;
 };

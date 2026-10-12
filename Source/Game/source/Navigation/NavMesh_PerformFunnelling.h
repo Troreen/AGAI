@@ -11,12 +11,13 @@ namespace
 {
 VectorRelation GetVectorRelation(const Vector2f& aForward, const Vector2f& aVector)
 {
-    const float cross = Cross(aForward, aVector);
-    if (cross > 0.f)
+    // Check whether the second direction points left, right, or along the first.
+    const float turnDirection = Cross(aForward, aVector);
+    if (turnDirection > 0.f)
     {
         return VectorRelation::Left;
     }
-    if (cross < 0.f)
+    if (turnDirection < 0.f)
     {
         return VectorRelation::Right;
     }
@@ -28,49 +29,56 @@ VectorRelation GetVectorRelation(const Vector2f& aForward, const Vector2f& aVect
 std::vector<Vector2f> NavMesh::PerformFunnelling(const Vector2f& aStart, const Vector2f& aGoal,
                                                const std::vector<NavPortal>& somePortals) const
 {
+    // With no openings to pass through, the path goes straight to the goal.
     if (somePortals.empty())
     {
         return {aStart, aGoal};
     }
-    std::vector<NavPortal> portals = somePortals;
-    portals.push_back({aGoal, aGoal});
-    std::vector<Vector2f> points{aStart};
-    Vector2f apex = aStart;
-    std::size_t leftIndex = 0;
-    std::size_t rightIndex = 0;
+    std::vector<NavPortal> routePortals = somePortals;
+    // Treat the goal as a final opening whose two ends are the same point.
+    routePortals.push_back({aGoal, aGoal});
+    std::vector<Vector2f> waypoints{aStart};
+    // Look ahead from the last chosen corner, keeping a left and right limit.
+    Vector2f lastCorner = aStart;
+    std::size_t leftPortalIndex = 0;
+    std::size_t rightPortalIndex = 0;
 
-    const std::size_t portalCount = portals.size();
-    for (std::size_t index = 1; index < portalCount; index++)
+    const std::size_t portalCount = routePortals.size();
+    // The two limits mark the directions we can walk before needing another turn.
+    for (std::size_t currentPortalIndex = 1; currentPortalIndex < portalCount; currentPortalIndex++)
     {
-        if (portals[index].left != portals[leftIndex].left)
+        // Try to bring the left limit inward as the next opening comes into view.
+        if (routePortals[currentPortalIndex].left != routePortals[leftPortalIndex].left)
         {
-            const Vector2f newSide = portals[index].left - apex;
-            const Vector2f oldSide = portals[leftIndex].left - apex;
-            const bool makesFunnelWider = GetVectorRelation(oldSide, newSide) == VectorRelation::Left;
+            const Vector2f candidateLeftDirection = routePortals[currentPortalIndex].left - lastCorner;
+            const Vector2f currentLeftDirection = routePortals[leftPortalIndex].left - lastCorner;
+            const bool makesFunnelWider = GetVectorRelation(currentLeftDirection, candidateLeftDirection) == VectorRelation::Left;
+            // A wider opening adds no restriction; only a tighter one can change the path.
             if (!makesFunnelWider)
             {
-                const Vector2f rightSide = portals[rightIndex].right - apex;
-                const bool crossesOtherSide = GetVectorRelation(rightSide, newSide) == VectorRelation::Right;
+                const Vector2f currentRightDirection = routePortals[rightPortalIndex].right - lastCorner;
+                const bool crossesOtherSide = GetVectorRelation(currentRightDirection, candidateLeftDirection) == VectorRelation::Right;
                 if (crossesOtherSide)
                 {
-                    points.push_back(portals[rightIndex].right);
-                    apex = portals[rightIndex].right;
+                    // The limits crossed, so the path must turn at the right corner.
+                    waypoints.push_back(routePortals[rightPortalIndex].right);
+                    lastCorner = routePortals[rightPortalIndex].right;
 
-                    // Find next portal where the right side is not our new apex.
-                    bool newPortalFound = false;
-                    for (std::size_t nextPortal = rightIndex + 1; nextPortal < portalCount; nextPortal++)
+                    // Start looking ahead again at the next opening with a different right endpoint.
+                    bool restartPortalFound = false;
+                    for (std::size_t nextPortalIndex = rightPortalIndex + 1; nextPortalIndex < portalCount; nextPortalIndex++)
                     {
-                        if (portals[nextPortal].right != apex)
+                        if (routePortals[nextPortalIndex].right != lastCorner)
                         {
-                            leftIndex = nextPortal;
-                            rightIndex = nextPortal;
-                            index = nextPortal;
-                            newPortalFound = true;
+                            leftPortalIndex = nextPortalIndex;
+                            rightPortalIndex = nextPortalIndex;
+                            currentPortalIndex = nextPortalIndex;
+                            restartPortalFound = true;
                             break;
                         }
                     }
 
-                    if (newPortalFound)
+                    if (restartPortalFound)
                     {
                         // Restart with both sides of the new portal.
                         continue;
@@ -81,40 +89,43 @@ std::vector<Vector2f> NavMesh::PerformFunnelling(const Vector2f& aStart, const V
                 }
                 else
                 {
-                    leftIndex = index;
+                    // Keep the tighter left limit for the next opening.
+                    leftPortalIndex = currentPortalIndex;
                 }
             }
         }
 
-        if (portals[index].right != portals[rightIndex].right)
+        // Do the same check for the right limit.
+        if (routePortals[currentPortalIndex].right != routePortals[rightPortalIndex].right)
         {
-            const Vector2f newSide = portals[index].right - apex;
-            const Vector2f oldSide = portals[rightIndex].right - apex;
-            const bool makesFunnelWider = GetVectorRelation(oldSide, newSide) == VectorRelation::Right;
+            const Vector2f candidateRightDirection = routePortals[currentPortalIndex].right - lastCorner;
+            const Vector2f currentRightDirection = routePortals[rightPortalIndex].right - lastCorner;
+            const bool makesFunnelWider = GetVectorRelation(currentRightDirection, candidateRightDirection) == VectorRelation::Right;
             if (!makesFunnelWider)
             {
-                const Vector2f leftSide = portals[leftIndex].left - apex;
-                const bool crossesOtherSide = GetVectorRelation(leftSide, newSide) == VectorRelation::Left;
+                const Vector2f currentLeftDirection = routePortals[leftPortalIndex].left - lastCorner;
+                const bool crossesOtherSide = GetVectorRelation(currentLeftDirection, candidateRightDirection) == VectorRelation::Left;
                 if (crossesOtherSide)
                 {
-                    points.push_back(portals[leftIndex].left);
-                    apex = portals[leftIndex].left;
+                    // The limits crossed, so the path must turn at the left corner.
+                    waypoints.push_back(routePortals[leftPortalIndex].left);
+                    lastCorner = routePortals[leftPortalIndex].left;
 
-                    // Find next portal where the left side is not our new apex.
-                    bool newPortalFound = false;
-                    for (std::size_t nextPortal = leftIndex + 1; nextPortal < portalCount; nextPortal++)
+                    // Start looking ahead again at the next opening with a different left endpoint.
+                    bool restartPortalFound = false;
+                    for (std::size_t nextPortalIndex = leftPortalIndex + 1; nextPortalIndex < portalCount; nextPortalIndex++)
                     {
-                        if (portals[nextPortal].left != apex)
+                        if (routePortals[nextPortalIndex].left != lastCorner)
                         {
-                            leftIndex = nextPortal;
-                            rightIndex = nextPortal;
-                            index = nextPortal;
-                            newPortalFound = true;
+                            leftPortalIndex = nextPortalIndex;
+                            rightPortalIndex = nextPortalIndex;
+                            currentPortalIndex = nextPortalIndex;
+                            restartPortalFound = true;
                             break;
                         }
                     }
 
-                    if (newPortalFound)
+                    if (restartPortalFound)
                     {
                         // Restart with both sides of the new portal.
                         continue;
@@ -125,15 +136,17 @@ std::vector<Vector2f> NavMesh::PerformFunnelling(const Vector2f& aStart, const V
                 }
                 else
                 {
-                    rightIndex = index;
+                    // Keep the tighter right limit for the next opening.
+                    rightPortalIndex = currentPortalIndex;
                 }
             }
         }
     }
 
-    if (!SamePoint(points.back(), aGoal))
+    // Finish at the goal without adding the same point twice.
+    if (!SamePoint(waypoints.back(), aGoal))
     {
-        points.push_back(aGoal);
+        waypoints.push_back(aGoal);
     }
-    return points;
+    return waypoints;
 }

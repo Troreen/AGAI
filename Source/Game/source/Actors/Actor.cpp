@@ -6,8 +6,8 @@ namespace
 // Keep a movement or turning amount from going above its allowed maximum.
 void LimitVector(CommonUtilities::Vector2f& aVector, const float aMaximumLength)
 {
-    const float length = aVector.Length();
-    if (length > aMaximumLength && length > 0.f)
+    const float vectorLength = aVector.Length();
+    if (vectorLength > aMaximumLength && vectorLength > 0.f)
     {
         aVector = aVector.GetNormalized() * aMaximumLength;
     }
@@ -60,13 +60,14 @@ void Actor::AddController(std::unique_ptr<Controller> aController)
 
 void Actor::CalculateSteering(float aDeltaTime, std::span<const Actor* const> aNeighbours)
 {
-    CommonUtilities::Vector2f totalSteering = {};
+    // Let each controller choose its movement target, then add their steering forces together.
+    CommonUtilities::Vector2f totalSteeringForce = {};
     for (const auto& controller : myControllers)
     {
         controller->Update(*this, aDeltaTime);
-        totalSteering += controller->GetSteeringForce(*this, aNeighbours);
+        totalSteeringForce += controller->GetSteeringForce(*this, aNeighbours);
     }
-    mySteeringForce = totalSteering;
+    mySteeringForce = totalSteeringForce;
 }
 
 bool Actor::NeedsNeighbours() const
@@ -90,6 +91,7 @@ const CommonUtilities::Vector2f& Actor::GetPreviousSteeringForce() const
 // Steering is a push that changes our speed and direction, not a new position.
 void Actor::UpdateMovement(float aDeltaTime)
 {
+    // Cap the push so the actor cannot accelerate or turn faster than its settings allow.
     LimitVector(mySteeringForce, myMaxForce);
     myPreviousSteeringForce = mySteeringForce;
 
@@ -100,6 +102,7 @@ void Actor::UpdateMovement(float aDeltaTime)
     myVelocity += (myAcceleration * 0.5f) * aDeltaTime;
     LimitVector(myVelocity, myMaxSpeed);
 
+    // Ignore tiny speeds so the actor does not drift when it should be still.
     constexpr float standStillSpeed = 0.01f;
     if (myVelocity.LengthSqr() > (standStillSpeed * standStillSpeed))
     {

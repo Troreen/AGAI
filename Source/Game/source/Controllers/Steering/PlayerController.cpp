@@ -19,19 +19,19 @@ PlayerController::PlayerController(const CommonUtilities::Vector2f& aStartPositi
 void PlayerController::Update(Actor& aActor, float)
 {
     // Clicking the debug panel should not also send the player walking somewhere.
-    bool acceptMouse = true;
+    bool acceptMouseInput = true;
 #ifndef _RETAIL
     if (ImGui::GetIO().WantCaptureMouse)
     {
-        acceptMouse = false;
+        acceptMouseInput = false;
     }
 #endif
-    if (acceptMouse && myInput.IsMouseButtonPressed(Keys::MOUSELBUTTON))
+    if (acceptMouseInput && myInput.IsMouseButtonPressed(Keys::MOUSELBUTTON))
     {
-        const POINT mouse = myInput.GetMousePos();
+        const POINT mousePosition = myInput.GetMousePos();
         // Mouse coordinates start at the top-left; world coordinates start at the bottom-left.
-        SetTargetPosition({static_cast<float>(mouse.x),
-                           static_cast<float>(Tga::DX11::GetResolution().y) - static_cast<float>(mouse.y)});
+        SetTargetPosition({static_cast<float>(mousePosition.x),
+                           static_cast<float>(Tga::DX11::GetResolution().y) - static_cast<float>(mousePosition.y)});
     }
 
     // Stop when we are close enough, instead of circling around the clicked point.
@@ -52,10 +52,10 @@ CommonUtilities::Vector2f PlayerController::GetDesiredVelocity(const Actor& aAct
 // --- Give the debug drawing the player's destination ---
 ControllerDebugInfo PlayerController::GetDebugInfo() const
 {
-    ControllerDebugInfo info;
-    info.hasTarget = true;
-    info.targetPosition = myTargetPosition;
-    return info;
+    ControllerDebugInfo debugInfo;
+    debugInfo.hasTarget = true;
+    debugInfo.targetPosition = myTargetPosition;
+    return debugInfo;
 }
 
 // --- Remember the latest clicked position ---

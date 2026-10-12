@@ -70,8 +70,9 @@ it is shared with engine model loading.
 vertex indices. This handles shared geometry split across FBX chunks.
 
 The edge comparison requires collinear edges, triangle centres on opposite sides
-of the edge, and an overlap longer than `pointTolerance`. It accepts partial
-overlaps for the course mesh's T-junctions and rejects point-only contact.
+of the edge, and both endpoints matching within `pointTolerance`, in either order.
+The shared edge must be longer than `pointTolerance`. Partial overlaps,
+T-junctions, and point-only contact do not create connections.
 
 For a connected pair, `SetConnections` adds connections in both directions.
 Both costs use the distance between the triangle centres.
@@ -151,7 +152,7 @@ portals remain available for inspection.
 
 [PathFollowingController.cpp](source/Controllers/Navigation/PathFollowingController.cpp)
 copies `smoothPoints` in `SetPath`, without changing their corners.
-`myNextPoint` normally starts at 1 because point 0 is the start position.
+`myNextWaypointIndex` normally starts at 1 because point 0 is the start position.
 A single-point path starts at 0; an empty path is already finished.
 
 ### Update and waypoint completion
@@ -159,7 +160,7 @@ A single-point path starts at 0; an empty path is already finished.
 `Update` checks whether the Actor can reach the active waypoint directly.
 The destination uses `arrivalDistance` (1.5 pixels); intermediate waypoints
 use at least one frame of maximum travel so full-speed movement cannot miss them.
-If so, it places the Actor exactly there and increments `myNextPoint`,
+If so, it places the Actor exactly there and increments `myNextWaypointIndex`,
 keeping its velocity. It repeats this for any nearby reachable waypoints,
 then calls `ChooseFollowTarget` in the same frame. A finished path stops
 the Actor.
@@ -186,14 +187,14 @@ This is the calculation used in the code, with a zero-length guard for repeated
 waypoints. Candidates are compared using squared distance to the Actor.
 A candidate is accepted only if both its projection and its segment endpoint
 are directly traversable. The nearest accepted candidate updates the active
-segment through `myNextPoint`. Equal distances favour the later candidate.
+segment through `myNextWaypointIndex`. Equal distances favour the later candidate.
 
 Starting from that projection, the controller walks `lookAheadDistance`
 (currently 45 pixels) along the remaining segments. It subtracts the distance
 used on each segment and carries the remainder onto the next, stopping at the
 destination if the path ends first.
 
-This calculation chooses an aiming point; it does not advance `myNextPoint`
+This calculation chooses an aiming point; it does not advance `myNextWaypointIndex`
 to that aiming point's segment. Progress comes from the projection search.
 
 The controller uses the look-ahead point only if `CanTraverseSegment` accepts

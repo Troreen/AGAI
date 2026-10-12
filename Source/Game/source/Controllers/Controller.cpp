@@ -41,17 +41,20 @@ ControllerDebugInfo Controller::GetDebugInfo() const
 
 CommonUtilities::Vector2f Controller::GetSteeringForce(const Actor& aActor, std::span<const Actor* const> aNeighbours) const
 {
-    const CommonUtilities::Vector2f primaryForce =
+    // Turn the requested velocity into a push that changes the actor's current movement.
+    const CommonUtilities::Vector2f desiredMovementForce =
         ControllerUtils::SteerTowards(aActor, GetDesiredVelocity(aActor, aNeighbours)) * GetBehaviorWeight();
 
     bool isOutsideBounds = false;
     const CommonUtilities::Vector2f containmentForce = GetContainmentForce(aActor, isOutsideBounds);
+    // If the actor has left its allowed area, give returning inside priority over normal movement.
     if (isOutsideBounds)
     {
         return containmentForce;
     }
 
-    return primaryForce + containmentForce * myData.containmentWeight;
+    // Otherwise, combine normal steering with any push away from the boundary.
+    return desiredMovementForce + containmentForce * myData.containmentWeight;
 }
 
 float Controller::GetBehaviorWeight() const { return myData.behaviorWeight; }
