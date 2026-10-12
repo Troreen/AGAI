@@ -40,20 +40,22 @@ const std::vector<Vector2f>& PathFollowingController::GetPath() const
     return myPoints;
 }
 
-void PathFollowingController::Update(Actor& aActor, float)
+void PathFollowingController::Update(Actor& aActor, float aDeltaTime)
 {
-    // When we are close enough, finish the last small step to the waypoint.
-    // Check that step is walkable, then stop so incoming velocity cannot
-    // carry us through a wall when we turn at a tight corner.
-    if (!IsFinished() && aActor.GetPosition().Distance(myPoints[myNextPoint]) <= arrivalDistance && myNavMesh.CanTraverseSegment(aActor.GetPosition(), myPoints[myNextPoint]))
+    // Finish reachable waypoints without losing velocity. Select the next
+    // movement target this frame; only the destination stops the Actor.
+    while (!IsFinished())
     {
+        const bool isDestination = myNextPoint + 1 == myPoints.size();
+        const float reachDistance = isDestination ? arrivalDistance
+            : (std::max)(arrivalDistance, aActor.GetMaxSpeed() * aDeltaTime);
+        if (aActor.GetPosition().Distance(myPoints[myNextPoint]) > reachDistance ||
+            !myNavMesh.CanTraverseSegment(aActor.GetPosition(), myPoints[myNextPoint]))
+        {
+            break;
+        }
         aActor.SetPosition(myPoints[myNextPoint]);
-        aActor.Stop();
         ++myNextPoint;
-        // Stay here for this frame. Choose the next movement target next frame.
-        myFollowTarget = aActor.GetPosition();
-        myArriving = true;
-        return;
     }
     if (IsFinished())
     {
@@ -65,10 +67,10 @@ void PathFollowingController::Update(Actor& aActor, float)
 
 void PathFollowingController::ChooseFollowTarget(const Vector2f& aPosition)
 {
-    // Start with a safe fallback: approach the current waypoint and slow down.
+    // Start with a safe fallback: steer towards the current waypoint.
     // We will aim farther ahead only if there is a clear way to get there.
     myFollowTarget = myPoints[myNextPoint];
-    myArriving = true;
+    myArriving = myNextPoint + 1 == myPoints.size();
     // With only one point, there is no path segment to follow. Just arrive there.
     if (myNextPoint == 0)
     {
@@ -101,6 +103,7 @@ void PathFollowingController::ChooseFollowTarget(const Vector2f& aPosition)
         }
     }
     myFollowTarget = myPoints[myNextPoint];
+    myArriving = myNextPoint + 1 == myPoints.size();
 
     // From that closest spot, move the target lookAheadDistance pixels forward along the path.
     // If a segment is too short, spend the leftover distance on the next one.
@@ -131,8 +134,8 @@ void PathFollowingController::ChooseFollowTarget(const Vector2f& aPosition)
     if (myNavMesh.CanTraverseSegment(aPosition, position))
     {
         myFollowTarget = position;
-        // Slow down when following the final segment towards the destination.
-        myArriving = targetSegment + 1 == myPoints.size();
+        // Slow down only when the look-ahead target reaches the destination.
+        myArriving = position == myPoints.back();
     }
 }
 

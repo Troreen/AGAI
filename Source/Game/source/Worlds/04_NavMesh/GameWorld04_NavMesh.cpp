@@ -123,15 +123,22 @@ void GameWorld04_NavMesh::Update(float aTimeDelta)
     Actor& companion = myActorManager.GetActor(1);
     if (myNavigationPath.Succeeded())
     {
+        // Waypoint snaps are checked by the controller before integration.
+        companion.CalculateSteering(aTimeDelta);
         const Vector2f before = companion.GetPosition();
-        companion.Update(aTimeDelta);
+        companion.UpdateMovement(aTimeDelta);
         const Vector2f proposed = companion.GetPosition();
         const Vector2f constrained = myNavMesh.ConstrainMovement(before, proposed);
-        if (constrained != proposed)
+        const ControllerDebugInfo followInfo = myCompanionController->GetDebugInfo();
+        if (constrained != proposed || (followInfo.hasTarget && !myNavMesh.CanTraverseSegment(proposed, followInfo.targetPosition)))
         {
             // Steering is smooth movement; this final segment check is the hard
             // boundary guarantee. It also covers a click change while moving.
-            companion.SetPosition(constrained);
+            // Keep the steering target reachable if momentum cuts a corner.
+            // Take a checked step towards it instead of getting stuck at a wall.
+            companion.SetPosition(before);
+            const Vector2f safeStep = before + myCompanionController->GetDesiredVelocity(companion) * aTimeDelta;
+            companion.SetPosition(myNavMesh.ConstrainMovement(before, safeStep));
             companion.Stop();
             ++myMovementCorrections;
         }

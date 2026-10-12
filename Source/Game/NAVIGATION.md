@@ -156,20 +156,23 @@ A single-point path starts at 0; an empty path is already finished.
 
 ### Update and waypoint completion
 
-`Update` first checks whether the Actor is within `arrivalDistance`
-(1.5 pixels) of the active waypoint and can reach it directly.
-If so, it places the Actor exactly there, stops it, and increments
-`myNextPoint`. It keeps the steering target at the Actor's position for
-that frame, then returns.
+`Update` checks whether the Actor can reach the active waypoint directly.
+The destination uses `arrivalDistance` (1.5 pixels); intermediate waypoints
+use at least one frame of maximum travel so full-speed movement cannot miss them.
+If so, it places the Actor exactly there and increments `myNextPoint`,
+keeping its velocity. It repeats this for any nearby reachable waypoints,
+then calls `ChooseFollowTarget` in the same frame. A finished path stops
+the Actor.
 
-This lets boundary corners finish before movement turns onto the next segment.
-Otherwise, a finished path stops the Actor, and an unfinished path calls
-`ChooseFollowTarget`.
+If retained momentum would cross a wall or lose direct access to the steering
+target, the world takes a constrained step towards that target and clears
+the incoming velocity. This allows progress at tight corners.
 
 ### Select progress and a look-ahead target
 
-`ChooseFollowTarget` initially selects the active waypoint with Arrive enabled.
-That remains the fallback if a look-ahead shortcut is blocked.
+`ChooseFollowTarget` initially selects the active waypoint, using Seek for
+intermediate waypoints and Arrive for the destination. That remains the
+fallback if a look-ahead shortcut is blocked.
 
 To determine progress, it scans the remaining segments and computes a clamped
 projection for each:
@@ -201,9 +204,8 @@ waypoint as its target.
 
 `GetDesiredVelocity` returns zero for a finished path. Otherwise it calls:
 
-- `ArriveDesiredVelocity` when using the fallback waypoint or when the
-  look-ahead point is on the final segment.
-- `SeekDesiredVelocity` for other accepted look-ahead targets.
+- `ArriveDesiredVelocity` when the target is the destination.
+- `SeekDesiredVelocity` for intermediate waypoints and look-ahead targets.
 
 Arrive uses `lookAheadDistance` as its slowing distance.
 The controller supplies desired velocity; `Actor` computes steering, applies
@@ -238,10 +240,11 @@ coordinates navigation:
 2. Each update reads the player controller's requested target. If it changed,
    `PlanCompanionPath` plans from the companion's current position and gives
    `smoothPoints` to its controller. A failed plan stops the companion.
-3. For a successful path, save the companion's position and call its
-   `Actor::Update`.
-4. Constrain the segment from the saved position to the proposed position.
-   If corrected, apply the constrained position, stop the companion, and
+3. For a successful path, call `CalculateSteering` first, which may finish
+   a checked waypoint snap. Save that position, then call `UpdateMovement`.
+4. Constrain the movement from the saved position and check that its endpoint
+   can still reach the steering target. If either check fails, take a constrained
+   step from the saved position towards that target, clear velocity, and
    increment `myMovementCorrections`.
 
 Planning happens when the requested target changes or the mesh is successfully
