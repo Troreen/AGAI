@@ -132,8 +132,9 @@ TargetController::TargetController(const TargetControllerData& aData)
     : Controller(aData)
     , myTargetData(aData)
     , myRandomGenerator(aData.randomSeed)
-    , myTargetPosition(GenerateRandomTarget())
+
 {
+    SetRandomTarget();
 }
 
 void TargetController::SetTargetPosition(const CommonUtilities::Vector2f& aPosition)

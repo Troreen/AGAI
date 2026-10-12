@@ -24,10 +24,11 @@ CommonUtilities::Vector2f RectTraversalBounds::GetNearestValidPoint(
     const CommonUtilities::Vector2f& aPosition,
     float aInset) const
 {
-    const float minX = (std::min)(myMin.x + aInset, myMax.x);
-    const float maxX = (std::max)(myMax.x - aInset, myMin.x);
-    const float minY = (std::min)(myMin.y + aInset, myMax.y);
-    const float maxY = (std::max)(myMax.y - aInset, myMin.y);
+    const auto midpoint = (myMin + myMax) * 0.5f;
+    const float minX = (std::min)(myMin.x + aInset, midpoint.x);
+    const float maxX = (std::max)(myMax.x - aInset, midpoint.x);
+    const float minY = (std::min)(myMin.y + aInset, midpoint.y);
+    const float maxY = (std::max)(myMax.y - aInset, midpoint.y);
 
     return
     {

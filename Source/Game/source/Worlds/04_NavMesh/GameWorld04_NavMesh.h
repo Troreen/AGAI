@@ -13,7 +13,7 @@ namespace Tga { class Text; }
 class PlayerController;
 class PathFollowingController;
 
-// Navigation -> A* -> funnel -> steering is visible in Update.
+// GameWorld coordinates the navigation system. It initializes the navmesh and actors, handles target changes, and requests paths.
 class GameWorld04_NavMesh final : public GameWorld
 {
 public:
@@ -28,6 +28,7 @@ private:
     bool LoadNavigationMesh();
     void PlanCompanionPath();
     void UpdateNavigationUI();
+    Actor& GetCompanion();
 
     // Data outlives the actors/controllers that borrow it.
     NavMesh myNavMesh;

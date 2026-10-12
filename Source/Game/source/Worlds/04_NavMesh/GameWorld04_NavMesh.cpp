@@ -52,6 +52,11 @@ Actor& GameWorld04_NavMesh::GetPlayer()
     return myActorManager.GetActor(0);
 }
 
+Actor& GameWorld04_NavMesh::GetCompanion()
+{
+    return myActorManager.GetActor(1);
+}
+
 bool GameWorld04_NavMesh::LoadNavigationMesh()
 {
     const Tga::Vector2ui size = Tga::DX11::GetResolution();
@@ -72,8 +77,7 @@ void GameWorld04_NavMesh::Init(const CommonUtilities::InputHandler& aInput)
     LoadNavigationMesh();
     const Tga::Vector2ui size = Tga::DX11::GetResolution();
     const Vector2f playerPosition{static_cast<float>(size.x) * 0.35f, static_cast<float>(size.y) * 0.45f};
-    Actor& player = myActorManager.CreateActor(playerPosition, "Sprites/human.png",
-                                              std::make_unique<PlayerController>(playerPosition, aInput));
+    Actor& player = myActorManager.CreateActor(playerPosition, "Sprites/human.png", std::make_unique<PlayerController>(playerPosition, aInput));
     myPlayerController = static_cast<PlayerController*>(player.GetController());
     player.SetMaxSpeed(300.f);
     player.SetMaxForce(1200.f);
@@ -101,7 +105,7 @@ void GameWorld04_NavMesh::Init(const CommonUtilities::InputHandler& aInput)
 
 void GameWorld04_NavMesh::PlanCompanionPath()
 {
-    Actor& companion = myActorManager.GetActor(1);
+    Actor& companion = GetCompanion();
     myNavigationPath = myNavMesh.FindPath(companion.GetPosition(), myRequestedTarget);
     myCompanionController->SetPath(myNavigationPath.smoothPoints);
     if (!myNavigationPath.Succeeded())
@@ -120,7 +124,7 @@ void GameWorld04_NavMesh::Update(float aTimeDelta)
         myRequestedTarget = requested;
         PlanCompanionPath();
     }
-    Actor& companion = myActorManager.GetActor(1);
+    Actor& companion = GetCompanion();
     if (myNavigationPath.Succeeded())
     {
         // Waypoint snaps are checked by the controller before integration.
@@ -179,7 +183,7 @@ void GameWorld04_NavMesh::UpdateNavigationUI()
     ImGui::Combo("Asset", &myNavMeshAsset, assets, 2);
     if (ImGui::Button("Reload selected FBX") && LoadNavigationMesh())
     {
-        Actor& companion = myActorManager.GetActor(1);
+        Actor& companion = GetCompanion();
         Vector2f position;
         int triangle = -1;
         if (myNavMesh.ClosestPoint(companion.GetPosition(), position, triangle))
