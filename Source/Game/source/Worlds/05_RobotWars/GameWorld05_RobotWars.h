@@ -16,16 +16,18 @@
 #include "../../DecisionMaking/DecisionTree.h"
 #include "../../Controllers/Steering/WanderController.h"
 #include "../../Controllers/Steering/ArriveController.h"
+#include "../06_BehaviourTree/RobotWarsBehaviourTree.h"
 #include <tge/text/text.h>
 #include <array>
 #include <memory>
 #include <vector>
 
-// Own the arena and the two robots. Each AI chooses an action; Actor moves it,
+// Own the shared arena and robots. Each AI chooses an action; Actor moves it,
 // then this world checks bullet hits and healing for the finished frame.
-class GameWorld05_RobotWars final : public GameWorld
+class GameWorld05_RobotWars : public GameWorld
 {
 public:
+    explicit GameWorld05_RobotWars(bool aEnableBehaviourTree = false);
     void Init(const CommonUtilities::InputHandler& aInput) override;
     void Update(float aTimeDelta) override;
     void Render() override;
@@ -63,15 +65,20 @@ private:
     WanderController myStateMachineWanderController;
     ArriveController myStateMachineHealingController;
     CombatController myStateMachineCombatController{myBulletSystem, myCombatSettings};
+    std::unique_ptr<RobotWarsBehaviourTree> myBehaviourTree;
     // Members are destroyed from bottom to top. Destroy actors before the
     // controllers and tree nodes they borrow.
     ActorManager myActorManager;
     std::shared_ptr<RectTraversalBounds> myArenaBounds;
-    std::array<Tga::Text, 2> myRobotLabels;
+    std::array<Tga::Text, 3> myRobotLabels;
     Tga::SpriteSharedData myHealthPoolSpriteData = {};
     Tga::Sprite2DInstanceData myHealthPoolSprite = {};
     Tga::SpriteSharedData myBulletSpriteData = {};
     Tga::Text myHealthPoolLabel;
     Tga::Text myControlsLabel;
+#ifndef _RETAIL
+    Tga::Text myBehaviourTreeDebugLabel;
+#endif
+    const bool myEnableBehaviourTree;
     const CommonUtilities::InputHandler* myInput = nullptr;
 };

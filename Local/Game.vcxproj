@@ -338,4 +338,13 @@
     <ClInclude Include="..\Source\Game\source\Controllers\DecisionMaking\BehaviourTreeController.h" />
     <ClCompile Include="..\Source\Game\source\Controllers\DecisionMaking\BehaviourTreeController.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Source\Game\source\Worlds\06_BehaviourTree\BT_WoundedCondition.h" />
+    <ClCompile Include="..\Source\Game\source\Worlds\06_BehaviourTree\BT_WoundedCondition.cpp" />
+    <ClInclude Include="..\Source\Game\source\Worlds\06_BehaviourTree\BT_EnemyDetectedCondition.h" />
+    <ClCompile Include="..\Source\Game\source\Worlds\06_BehaviourTree\BT_EnemyDetectedCondition.cpp" />
+    <ClInclude Include="..\Source\Game\source\Worlds\06_BehaviourTree\RobotWarsBehaviourTree.h" />
+    <ClCompile Include="..\Source\Game\source\Worlds\06_BehaviourTree\RobotWarsBehaviourTree.cpp" />
+    <ClInclude Include="..\Source\Game\source\Worlds\06_BehaviourTree\GameWorld06_BehaviourTree.h" />
+  </ItemGroup>
 </Project>

@@ -1,6 +1,6 @@
 # Assignment worlds
 
-Change the number in `#define GAME_WORLD_ASSIGNMENT 5` at the top of
+Change the number in `#define GAME_WORLD_ASSIGNMENT 6` at the top of
 `source/Go.cpp`, rebuild GameMain, and run from `Bin`.
 
 | Number | Class | Controls |
@@ -10,6 +10,7 @@ Change the number in `#define GAME_WORLD_ASSIGNMENT 5` at the top of
 | 3 | GameWorld03_WorldInterface | Left-click to move. Approach a computer to hack it; inspect the four polling/event guards. |
 | 4 | GameWorld04_NavMesh | Left-click to move the player; the companion plans a path. Inspect navigation in the debug panel. |
 | 5 | GameWorld05_RobotWars | Both robots battle automatically: Decision Tree and State Machine. Space/Enter damage robot 1/2; R resets the battle. Below 40 HP, either robot seeks the pool. Defeated robots respawn after 3 seconds. Labels show HP, action/state, and the respawn countdown. |
+| 6 | GameWorld06_BehaviourTree | Three robots: Decision Tree, State Machine, and Sir Killalot's Behaviour Tree. Space/Enter/Backspace damage robots 1/2/3; R resets. All three target their nearest living enemy and use the same healing, combat, and respawn rules. |
 
 `source/Worlds/GameWorld.h` is the small shared interface. Each numbered world owns its own
 scene data and implements Init(input), Update(deltaTime), and Render(). Go keeps
@@ -17,6 +18,11 @@ one selected world on the stack, inside the existing engine lifetime. To add
 another assignment, implement the interface and add a selection branch in Go.
 Invalid assignment numbers produce a compile error. All implementations compile
 in every build, so shared-code changes are checked against every assignment.
+
+U06 reuses the Robot Wars arena through a thin subclass. Selector 5 still creates
+two robots with their original fixed opponents. Selector 6 adds Sir Killalot,
+nearest-enemy selection, and the persistent tree described in
+[BEHAVIOUR_TREE.md](BEHAVIOUR_TREE.md).
 
 ## Folder layout
 

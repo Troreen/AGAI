@@ -1,6 +1,7 @@
 #include "CombatController.h"
 #include "../ControllerUtils.h"
 #include "../../Actors/Actor.h"
+#include "../../Actors/ActorManager.h"
 #include "../../Worlds/05_RobotWars/BulletSystem.h"
 #include "../../Worlds/05_RobotWars/CombatSettings.h"
 #include <algorithm>
@@ -12,6 +13,24 @@ CombatController::CombatController(BulletSystem& aBulletSystem, const CombatSett
 void CombatController::SetEnemy(Actor& aEnemy)
 {
     myEnemy = &aEnemy;
+}
+
+void CombatController::SelectNearestEnemy(const Actor& aActor, ActorManager& aActors)
+{
+    myEnemy = nullptr;
+    if (!aActor.IsAlive()) return;
+    float nearestDistanceSquared = 0.f;
+    for (std::size_t index = 0; index < aActors.GetActorCount(); ++index)
+    {
+        Actor& candidate = aActors.GetActor(index);
+        if (&candidate == &aActor || !candidate.IsAlive()) continue;
+        const float distanceSquared = aActor.GetPosition().DistanceSqr(candidate.GetPosition());
+        if (!myEnemy || distanceSquared < nearestDistanceSquared)
+        {
+            myEnemy = &candidate;
+            nearestDistanceSquared = distanceSquared;
+        }
+    }
 }
 
 bool CombatController::HasDetectedEnemy(const Actor& aActor) const

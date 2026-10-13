@@ -190,4 +190,14 @@
     <ClInclude Include="..\Source\Game\source\Controllers\DecisionMaking\BehaviourTreeController.h"><Filter>Game\Controllers\DecisionMaking</Filter></ClInclude>
     <ClCompile Include="..\Source\Game\source\Controllers\DecisionMaking\BehaviourTreeController.cpp"><Filter>Game\Controllers\DecisionMaking</Filter></ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Source\Game\source\Worlds\06_BehaviourTree\BT_WoundedCondition.h"><Filter>Game\Worlds\06_BehaviourTree</Filter></ClInclude>
+    <ClCompile Include="..\Source\Game\source\Worlds\06_BehaviourTree\BT_WoundedCondition.cpp"><Filter>Game\Worlds\06_BehaviourTree</Filter></ClCompile>
+    <ClInclude Include="..\Source\Game\source\Worlds\06_BehaviourTree\BT_EnemyDetectedCondition.h"><Filter>Game\Worlds\06_BehaviourTree</Filter></ClInclude>
+    <ClCompile Include="..\Source\Game\source\Worlds\06_BehaviourTree\BT_EnemyDetectedCondition.cpp"><Filter>Game\Worlds\06_BehaviourTree</Filter></ClCompile>
+    <ClInclude Include="..\Source\Game\source\Worlds\06_BehaviourTree\RobotWarsBehaviourTree.h"><Filter>Game\Worlds\06_BehaviourTree</Filter></ClInclude>
+    <ClCompile Include="..\Source\Game\source\Worlds\06_BehaviourTree\RobotWarsBehaviourTree.cpp"><Filter>Game\Worlds\06_BehaviourTree</Filter></ClCompile>
+    <ClInclude Include="..\Source\Game\source\Worlds\06_BehaviourTree\GameWorld06_BehaviourTree.h"><Filter>Game\Worlds\06_BehaviourTree</Filter></ClInclude>
+    <Filter Include="Game\Worlds\06_BehaviourTree"><UniqueIdentifier>{6ad85a29-91e6-56c5-ba94-12bb8ee64909}</UniqueIdentifier></Filter>
+  </ItemGroup>
 </Project>

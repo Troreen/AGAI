@@ -4,14 +4,17 @@
 
 class BulletSystem;
 struct CombatSettings;
+class ActorManager;
 
-// Chase and shoot are shared by the Decision Tree and State Machine.
+// Chase and shoot are shared by all three AI systems.
 // Each robot has its own instance so their enemy references and shot timers differ.
 class CombatController final : public Controller
 {
 public:
     CombatController(BulletSystem& aBulletSystem, const CombatSettings& aSettings);
     void SetEnemy(Actor& aEnemy);
+    // U06 chooses once before the robots move. Actor order breaks equal ties.
+    void SelectNearestEnemy(const Actor& aActor, ActorManager& aActors);
     bool HasDetectedEnemy(const Actor& aActor) const;
     // The world advances this timer; only an active Combat action fires a shot.
     void UpdateCooldown(float aDeltaTime);
