@@ -311,4 +311,9 @@
     <ClInclude Include="..\Source\Game\source\Worlds\05_RobotWars\EnemyDetectedDecision.h" />
     <ClCompile Include="..\Source\Game\source\Worlds\05_RobotWars\EnemyDetectedDecision.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Source\Game\source\DecisionMaking\BehaviourTree\BT_NodeResult.h" />
+    <ClInclude Include="..\Source\Game\source\DecisionMaking\BehaviourTree\BT_Node.h" />
+    <ClCompile Include="..\Source\Game\source\DecisionMaking\BehaviourTree\BT_Node.cpp" />
+  </ItemGroup>
 </Project>
