@@ -157,6 +157,8 @@
     <ClCompile Include="..\Source\Game\source\Worlds\05_RobotWars\BulletSystem.cpp"><Filter>Game\Worlds\05_RobotWars</Filter></ClCompile>
     <ClInclude Include="..\Source\Game\source\Controllers\DecisionMaking\CombatController.h"><Filter>Game\Controllers\DecisionMaking</Filter></ClInclude>
     <ClCompile Include="..\Source\Game\source\Controllers\DecisionMaking\CombatController.cpp"><Filter>Game\Controllers\DecisionMaking</Filter></ClCompile>
+    <ClInclude Include="..\Source\Game\source\Controllers\DecisionMaking\StateMachineController.h"><Filter>Game\Controllers\DecisionMaking</Filter></ClInclude>
+    <ClCompile Include="..\Source\Game\source\Controllers\DecisionMaking\StateMachineController.cpp"><Filter>Game\Controllers\DecisionMaking</Filter></ClCompile>
     <ClInclude Include="..\Source\Game\source\Worlds\05_RobotWars\EnemyDetectedDecision.h"><Filter>Game\Worlds\05_RobotWars</Filter></ClInclude>
     <ClCompile Include="..\Source\Game\source\Worlds\05_RobotWars\EnemyDetectedDecision.cpp"><Filter>Game\Worlds\05_RobotWars</Filter></ClCompile>
   </ItemGroup>

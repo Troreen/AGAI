@@ -9,7 +9,8 @@ struct CombatSettings
     float chaseSlowingDistance = 240.f;
     float fireInterval = 0.5f;
     float bulletSpeed = 600.f;
-    float bulletDamage = 15.f;
+    // A shot can finish a robot leaving Heal at 40 HP, avoiding a shared-pool loop.
+    float bulletDamage = 45.f;
     float bulletRadius = 5.f;
     float bulletLifetime = 2.f;
 };

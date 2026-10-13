@@ -62,10 +62,19 @@ void Actor::AddController(std::unique_ptr<Controller> aController)
 
 void Actor::CalculateSteering(float aDeltaTime, std::span<const Actor* const> aNeighbours)
 {
-    // Defeated robots do not run their AI. Respawn will be handled by Actor too.
+    // Death belongs to Actor, outside the tree and the state machine.
     if (!IsAlive())
     {
         Stop();
+        if (myRespawnEnabled)
+        {
+            myRespawnTimeRemaining = (std::max)(0.f, myRespawnTimeRemaining - aDeltaTime);
+            if (myRespawnTimeRemaining <= 0.f)
+            {
+                SetPosition(mySpawnPosition);
+                myHealth = myMaxHealth;
+            }
+        }
         return;
     }
 
@@ -237,16 +246,18 @@ void Actor::EnableHealth(float aMaxHealth, float aWoundedThreshold)
     myMaxHealth = aMaxHealth;
     myHealth = myMaxHealth;
     myWoundedThreshold = aWoundedThreshold;
+    myRespawnTimeRemaining = 0.f;
 }
 
 void Actor::TakeDamage(float aDamage)
 {
-    if (myHealthEnabled)
+    if (myHealthEnabled && IsAlive())
     {
         myHealth = (std::max)(0.f, myHealth - aDamage);
         if (!IsAlive())
         {
             Stop();
+            myRespawnTimeRemaining = myRespawnDelay;
         }
     }
 }
@@ -283,3 +294,12 @@ bool Actor::IsAlive() const
 {
     return !myHealthEnabled || myHealth > 0.f;
 }
+
+void Actor::EnableRespawn(const CommonUtilities::Vector2f& aSpawnPosition, float aDelay)
+{
+    myRespawnEnabled = true;
+    mySpawnPosition = aSpawnPosition;
+    myRespawnDelay = aDelay;
+}
+
+float Actor::GetRespawnTimeRemaining() const { return myRespawnTimeRemaining; }

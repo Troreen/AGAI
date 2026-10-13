@@ -11,6 +11,7 @@
 #include "CombatSettings.h"
 #include "BulletSystem.h"
 #include "../../Controllers/DecisionMaking/CombatController.h"
+#include "../../Controllers/DecisionMaking/StateMachineController.h"
 #include "../../DecisionMaking/ActionNode.h"
 #include "../../DecisionMaking/DecisionTree.h"
 #include "../../Controllers/Steering/WanderController.h"
@@ -55,6 +56,9 @@ private:
     EnemyDetectedDecision myEnemyDetectedDecision{myCombatController, myCombatAction, myWanderAction};
     WoundedDecision myWoundedDecision{myHealingAction, myEnemyDetectedDecision};
     DecisionTree myRobotDecisionTree{myWoundedDecision};
+    WanderController myStateMachineWanderController;
+    ArriveController myStateMachineArriveController;
+    CombatController myStateMachineCombatController{myBulletSystem, myCombatSettings};
     ActorManager myActorManager;
     std::shared_ptr<RectTraversalBounds> myArenaBounds;
     std::array<Tga::Text, 2> myRobotLabels;

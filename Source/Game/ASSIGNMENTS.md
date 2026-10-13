@@ -9,7 +9,7 @@ Change the number in `#define GAME_WORLD_ASSIGNMENT 5` at the top of
 | 2 | GameWorld02_Boids | 100 boids run automatically; tune flocking, avoidance, and debug drawing in Flocking Settings. |
 | 3 | GameWorld03_WorldInterface | Left-click to move. Approach a computer to hack it; inspect the four polling/event guards. |
 | 4 | GameWorld04_NavMesh | Left-click to move the player; the companion plans a path. Inspect navigation in the debug panel. |
-| 5 | GameWorld05_RobotWars | Milestone 6: robot 1 detects, chases, and shoots a stationary robot 2. Space/Enter damage robot 1/2; R resets the test. Below 40 HP, robot 1 chooses Heal before combat. Defeated robots wait for reset; timed respawn and the State Machine come later. |
+| 5 | GameWorld05_RobotWars | Both robots battle automatically: Decision Tree and State Machine. Space/Enter damage robot 1/2; R resets the battle. Below 40 HP, either robot seeks the pool. Defeated robots respawn after 3 seconds. Labels show HP, action/state, and the respawn countdown. |
 
 `source/Worlds/GameWorld.h` is the small shared interface. Each numbered world owns its own
 scene data and implements Init(input), Update(deltaTime), and Render(). Go keeps
@@ -154,3 +154,58 @@ healing, and stopped AI/movement at zero HP. Combat movement checks passed at
 positions at those frame rates. `CombatSceneTests.cpp` started the real graphics
 engine and ran 180 Robot Wars update/render frames, including bullet sprites.
 Interactive appearance and reset controls await review before committing.
+
+## Robot Wars milestone 7: timed respawn
+
+Actor owns death and respawn. The first fatal hit stops movement and starts a
+three-second countdown. While dead, the robot skips its AI and cannot heal;
+further hits cannot restart the timer. When the countdown ends, Actor restores
+full HP and its original spawn position with zero velocity. AI resumes on the
+next frame. Respawn is enabled only for Robot Wars, so the other worlds retain
+their existing behaviour. Death adds neither a decision node nor a state.
+
+The label shows the remaining time. R clears bullets, restores both robots,
+cancels death timers, and resets both firing cooldowns. Existing shots expire
+after two seconds, before the three-second respawn, so shots from the previous
+life cannot hit a revived target.
+
+## Robot Wars milestone 8: State Machine
+
+Robot 2 uses StateMachineController with three states: Wander, Heal, and Combat.
+Each state checks its outgoing transitions before running its movement action:
+
+- Wander goes to Heal when wounded, otherwise to Combat when an enemy is detected.
+- Combat goes to Heal when wounded, otherwise to Wander when vision is lost.
+- Heal stays active below 40 HP, then goes to Combat if an enemy is detected or
+  Wander otherwise.
+
+These transitions use HP and enemy detection directly. They do not ask the
+Decision Tree which state to choose. The machine reuses WanderController,
+ArriveController, and CombatController, with separate instances for robot 2.
+Both robots have their own cooldown and wandering state, plus wall avoidance.
+The world owns these borrowed controllers for the whole actor lifetime.
+
+## Robot Wars milestone 9: both robots enabled
+
+The Decision Tree and State Machine now run together. They use the same speed,
+vision, healing, and shooting settings. Space damages robot 1, Enter damages
+robot 2, and R resets the battle. Labels show the action or state used for movement.
+
+Shared shot damage is now 45 rather than milestone 6's 15. The original damage
+allowed two robots in the pool to repeatedly heal to 40 HP, trade a shot, and
+return to healing forever. A 45-damage shot can finish a robot leaving Heal,
+breaking that loop. The fire interval remains 0.5 seconds and healing remains
+10 HP per second. When both robots occupy the same point, bullets use the
+shooter's facing; the swept hit check still detects the target at the shot's
+starting position.
+
+Verification: Debug and Release x64 GameMain builds passed at warning level 4
+with warnings treated as errors. `Temp/DecisionTreeTests/StateMachineTests.cpp`
+passed all six state transitions, healing priority without shooting, death and
+respawn timing, no movement or pool revival while dead, repeated damage during
+death, manual health reset, and actors without respawn enabled. Its 120-second
+battles at 60/30/10 FPS exercised damage, healing, death, respawn, and wall
+clearance for both robots. The existing combat and automatic-healing regressions
+passed again. The real scene also ran 180 update/render frames with bullet
+sprites. Test files remain under ignored Temp, as in the previous milestones.
+Interactive run reviewed and approved before committing milestones 7-9.

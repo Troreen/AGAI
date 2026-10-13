@@ -22,10 +22,11 @@ void GameWorld05_RobotWars::Init(const CommonUtilities::InputHandler& aInput)
     ConfigureDecisionTree();
     CreateRobots();
     myCombatController.SetEnemy(myActorManager.GetActor(1));
+    myStateMachineCombatController.SetEnemy(myActorManager.GetActor(0));
     myBulletSpriteData.texture = Tga::GraphicsEngine::GetInstance()->GetTextureManager().GetTexture("Sprites/ninjaStar.png");
     myRobotLabels[0].SetText("Decision Tree");
-    myRobotLabels[1].SetText("Target (State Machine later)");
-    myControlsLabel.SetText("Space/Enter: damage robot 1/2 | R: reset combat test");
+    myRobotLabels[1].SetText("State Machine");
+    myControlsLabel.SetText("Space/Enter: damage robot 1/2 | R: reset battle");
     myControlsLabel.SetPosition({40.f, 24.f});
 }
 
@@ -40,15 +41,17 @@ void GameWorld05_RobotWars::CreateRobots()
         robot.SetMass(1.f);
         robot.SetRadius(25.f);
         robot.EnableHealth(100.f, 40.f);
+        robot.EnableRespawn(GetRobotSpawnPosition(index), 3.f);
         if (index == 0)
         {
             robot.SetController(std::make_unique<DecisionTreeController>(myRobotDecisionTree));
         }
-        // Robot 2 stays still as a shooting target until its AI is implemented.
-        if (index == 0)
+        else
         {
-            robot.AddController(std::make_unique<ObstacleAvoidanceController>(myWallAvoidanceSettings, myWallObstacles, myArenaBounds));
+            robot.SetController(std::make_unique<StateMachineController>(
+                myStateMachineWanderController, myStateMachineArriveController, myStateMachineCombatController));
         }
+        robot.AddController(std::make_unique<ObstacleAvoidanceController>(myWallAvoidanceSettings, myWallObstacles, myArenaBounds));
     }
 }
 
@@ -56,6 +59,7 @@ void GameWorld05_RobotWars::Update(float aTimeDelta)
 {
     UpdateTestInput();
     myCombatController.UpdateCooldown(aTimeDelta);
+    myStateMachineCombatController.UpdateCooldown(aTimeDelta);
     myActorManager.Update(aTimeDelta);
     // Resolve bullet damage before healing, so a fatal hit cannot be undone.
     myBulletSystem.Update(aTimeDelta, *myArenaBounds);
@@ -73,7 +77,7 @@ void GameWorld05_RobotWars::Render()
 
 void GameWorld05_RobotWars::DrawLabels()
 {
-    const char* robotNames[2] = {"Decision Tree", "Target (State Machine later)"};
+    const char* robotNames[2] = {"Decision Tree", "State Machine"};
     for (std::size_t index = 0; index < myRobotLabels.size(); ++index)
     {
         const Actor& robot = myActorManager.GetActor(index);
@@ -96,9 +100,22 @@ void GameWorld05_RobotWars::DrawLabels()
             else
                 selectedActionName = " | Wander";
         }
+        else
+        {
+            const StateMachineController& controller = static_cast<const StateMachineController&>(*robot.GetController());
+            switch (controller.GetState())
+            {
+            case RobotState::Heal: selectedActionName = " | Heal"; break;
+            case RobotState::Combat: selectedActionName = " | Combat"; break;
+            case RobotState::Wander: selectedActionName = " | Wander"; break;
+            }
+        }
         char labelText[128] = {};
         std::snprintf(labelText, sizeof(labelText), "%s | HP %.0f/%.0f%s%s",
             robotNames[index], robot.GetHealth(), robot.GetMaxHealth(), woundedStatus, selectedActionName);
+        if (!robot.IsAlive())
+            std::snprintf(labelText, sizeof(labelText), "%s | HP 0/%.0f | Respawn %.1fs",
+                robotNames[index], robot.GetMaxHealth(), robot.GetRespawnTimeRemaining());
         label.SetText(labelText);
         label.SetPosition((robot.GetPosition() + CommonUtilities::Vector2f(-label.GetWidth() * 0.5f, 45.f)).ToTga());
         label.Render();
@@ -136,6 +153,8 @@ void GameWorld05_RobotWars::ConfigureDecisionTree()
     WanderControllerData wanderData;
     wanderData.randomSeed = 1u;
     myDecisionTreeWanderController.SetWanderControllerData(wanderData);
+    wanderData.randomSeed = 2u;
+    myStateMachineWanderController.SetWanderControllerData(wanderData);
 
     // The healing leaf reuses Arrive with one fixed target at the pool.
     ArriveControllerData arriveData;
@@ -143,6 +162,8 @@ void GameWorld05_RobotWars::ConfigureDecisionTree()
     arriveData.slowingRadius = myHealthPool.radius;
     myDecisionTreeArriveController.SetArriveControllerData(arriveData);
     myDecisionTreeArriveController.SetTargetPosition(myHealthPool.position);
+    myStateMachineArriveController.SetArriveControllerData(arriveData);
+    myStateMachineArriveController.SetTargetPosition(myHealthPool.position);
 }
 
 void GameWorld05_RobotWars::UpdateHealthPool(float aDeltaTime)
@@ -190,6 +211,8 @@ void GameWorld05_RobotWars::ResetCombatTest()
     // Clear flying shots before restoring their targets for another test.
     myBulletSystem.Clear();
     myCombatController.ResetCooldown();
+    myStateMachineCombatController.ResetCooldown();
+    static_cast<StateMachineController&>(*myActorManager.GetActor(1).GetController()).Reset();
     for (std::size_t robotIndex = 0; robotIndex < myActorManager.GetActorCount(); ++robotIndex)
     {
         Actor& robot = myActorManager.GetActor(robotIndex);

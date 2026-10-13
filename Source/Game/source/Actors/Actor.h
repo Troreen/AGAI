@@ -52,6 +52,8 @@ public:
     float GetWoundedThreshold() const;
     bool IsWounded() const;
     bool IsAlive() const;
+    void EnableRespawn(const CommonUtilities::Vector2f& aSpawnPosition, float aDelay);
+    float GetRespawnTimeRemaining() const;
 
     Tga::Sprite2DInstanceData GetSpriteInstanceData() const;
     Tga::SpriteSharedData GetSpriteSharedData() const;
@@ -87,4 +89,8 @@ private:
     float myHealth = 100.f;
     float myMaxHealth = 100.f;
     float myWoundedThreshold = 40.f;
+    bool myRespawnEnabled = false;
+    CommonUtilities::Vector2f mySpawnPosition;
+    float myRespawnDelay = 3.f;
+    float myRespawnTimeRemaining = 0.f;
 };

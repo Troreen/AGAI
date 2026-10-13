@@ -12,15 +12,16 @@ void BulletSystem::Fire(const Actor& aShooter, Actor& aTarget, const CombatSetti
     }
 
     const CommonUtilities::Vector2f toTarget = aTarget.GetPosition() - aShooter.GetPosition();
-    if (toTarget.LengthSqr() <= 0.0001f)
-    {
-        return;
-    }
+    // Both robots can reach the centre of the pool. A shot starting inside
+    // the target still hits; use the shooter's facing when there is no aim vector.
+    const float facing = aShooter.GetSpriteInstanceData().rotation;
+    const CommonUtilities::Vector2f direction = toTarget.LengthSqr() > 0.0001f
+        ? toTarget.GetNormalized() : CommonUtilities::Vector2f{cosf(facing), sinf(facing)};
 
     // Aim once when firing. The bullet then flies straight instead of homing.
     Bullet bullet;
     bullet.position = aShooter.GetPosition();
-    bullet.velocity = toTarget.GetNormalized() * aSettings.bulletSpeed;
+    bullet.velocity = direction * aSettings.bulletSpeed;
     bullet.damage = aSettings.bulletDamage;
     bullet.radius = aSettings.bulletRadius;
     bullet.remainingLifetime = aSettings.bulletLifetime;
