@@ -168,4 +168,12 @@
     <ClInclude Include="..\Source\Game\source\DecisionMaking\BehaviourTree\BT_Node.h"><Filter>Game\DecisionMaking\BehaviourTree</Filter></ClInclude>
     <ClCompile Include="..\Source\Game\source\DecisionMaking\BehaviourTree\BT_Node.cpp"><Filter>Game\DecisionMaking\BehaviourTree</Filter></ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Source\Game\source\DecisionMaking\BehaviourTree\BT_CompositeNode.h"><Filter>Game\DecisionMaking\BehaviourTree</Filter></ClInclude>
+    <ClCompile Include="..\Source\Game\source\DecisionMaking\BehaviourTree\BT_CompositeNode.cpp"><Filter>Game\DecisionMaking\BehaviourTree</Filter></ClCompile>
+    <ClInclude Include="..\Source\Game\source\DecisionMaking\BehaviourTree\BT_Sequence.h"><Filter>Game\DecisionMaking\BehaviourTree</Filter></ClInclude>
+    <ClCompile Include="..\Source\Game\source\DecisionMaking\BehaviourTree\BT_Sequence.cpp"><Filter>Game\DecisionMaking\BehaviourTree</Filter></ClCompile>
+    <ClInclude Include="..\Source\Game\source\DecisionMaking\BehaviourTree\BT_Selector.h"><Filter>Game\DecisionMaking\BehaviourTree</Filter></ClInclude>
+    <ClCompile Include="..\Source\Game\source\DecisionMaking\BehaviourTree\BT_Selector.cpp"><Filter>Game\DecisionMaking\BehaviourTree</Filter></ClCompile>
+  </ItemGroup>
 </Project>

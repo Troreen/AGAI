@@ -316,4 +316,12 @@
     <ClInclude Include="..\Source\Game\source\DecisionMaking\BehaviourTree\BT_Node.h" />
     <ClCompile Include="..\Source\Game\source\DecisionMaking\BehaviourTree\BT_Node.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Source\Game\source\DecisionMaking\BehaviourTree\BT_CompositeNode.h" />
+    <ClCompile Include="..\Source\Game\source\DecisionMaking\BehaviourTree\BT_CompositeNode.cpp" />
+    <ClInclude Include="..\Source\Game\source\DecisionMaking\BehaviourTree\BT_Sequence.h" />
+    <ClCompile Include="..\Source\Game\source\DecisionMaking\BehaviourTree\BT_Sequence.cpp" />
+    <ClInclude Include="..\Source\Game\source\DecisionMaking\BehaviourTree\BT_Selector.h" />
+    <ClCompile Include="..\Source\Game\source\DecisionMaking\BehaviourTree\BT_Selector.cpp" />
+  </ItemGroup>
 </Project>

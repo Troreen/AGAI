@@ -7,10 +7,19 @@ BT_NodeResult BT_Node::Tick(Actor& aActor, float aDeltaTime, BehaviourTree& aTre
         Init(aActor, aDeltaTime, aTree);
     }
 
-    const BT_NodeResult result = Update(aActor, aDeltaTime, aTree);
+    return RememberResult(Update(aActor, aDeltaTime, aTree));
+}
+
+BT_NodeResult BT_Node::RememberResult(BT_NodeResult aResult)
+{
     // A running node picks up where it left off on the next Tick.
-    myIsRunning = result == BT_NodeResult::Running;
-    return result;
+    myIsRunning = aResult == BT_NodeResult::Running;
+    return aResult;
+}
+
+BT_CompositeNode* BT_Node::GetParent() const
+{
+    return myParent;
 }
 
 void BT_Node::Reset()
