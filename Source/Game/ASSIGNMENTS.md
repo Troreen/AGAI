@@ -9,7 +9,7 @@ Change the number in `#define GAME_WORLD_ASSIGNMENT 5` at the top of
 | 2 | GameWorld02_Boids | 100 boids run automatically; tune flocking, avoidance, and debug drawing in Flocking Settings. |
 | 3 | GameWorld03_WorldInterface | Left-click to move. Approach a computer to hack it; inspect the four polling/event guards. |
 | 4 | GameWorld04_NavMesh | Left-click to move the player; the companion plans a path. Inspect navigation in the debug panel. |
-| 5 | GameWorld05_RobotWars | Milestone 3: Space/Enter damage robot 1/2; H toggles robot 1's healing test. HP and wounded status are visible; the pool heals gradually. Decision Tree and State Machine logic comes later. |
+| 5 | GameWorld05_RobotWars | Milestone 4: Space/Enter damage robot 1/2; H switches robot 1's Decision Tree between Wander and Heal. Its label shows the chosen action. Robot 2 still wanders; automatic conditions and the State Machine come later. |
 
 `source/Worlds/GameWorld.h` is the small shared interface. Each numbered world owns its own
 scene data and implements Init(input), Update(deltaTime), and Render(). Go keeps
@@ -63,3 +63,29 @@ These checks were repeated after the folder cleanup.
 - The preserved NavMesh source matches the previous implementation after renaming.
 - The define and final Debug executable were returned to selection 4.
 - Interactive gameplay was not checked during this architecture change.
+
+## Robot Wars milestone 4
+
+The tree follows `DecisionTree -> HealingTestDecision -> ActionNode`. A decision
+checks its condition and calls `MakeDecision` on the matching child. Children can
+be further decisions; an action leaf returns itself to finish the search. Each
+class has its own file under `source/DecisionMaking`.
+
+The world owns the nodes and their wander/arrive controllers. These members are
+declared before ActorManager so they outlive the actor that borrows the tree.
+DecisionTreeController selects an action each frame and forwards its update and
+desired velocity. Actor still applies steering and movement, with wall avoidance
+as a separate controller. H changes only the test condition, so switching actions
+keeps both movement controllers and their existing state.
+
+Review: press H to seek the pool, damage robot 1 with Space, observe gradual
+healing, then press H again to resume wandering. Both actions should avoid the
+walls. Robot 2 should keep wandering and respond to Enter. Automatic wounded
+conditions, combat, and State Machine behaviour belong to later milestones.
+
+Milestone 4 verification: Debug and Release x64 GameMain builds passed. A
+standalone check using the real tree, actor, steering controllers, and engine
+startup passed both branches and nested decisions, arrival within one unit of
+the pool, healing capped at 100 HP, switching back to wander, and 60 seconds of
+wandering inside arena bounds at 60/30/10 FPS. Interactive appearance and key
+controls remain for review. The check is under ignored `Temp/DecisionTreeTests`.

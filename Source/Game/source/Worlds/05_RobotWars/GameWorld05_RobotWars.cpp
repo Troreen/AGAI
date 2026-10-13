@@ -3,6 +3,7 @@
 #include "../../Controllers/Steering/WanderController.h"
 #include "../../Controllers/Steering/ObstacleAvoidanceController.h"
 #include "../../Controllers/Steering/ArriveController.h"
+#include "../../Controllers/DecisionMaking/DecisionTreeController.h"
 
 #include <tge/application.h>
 #include <tge/drawers/DebugDrawer.h>
@@ -18,10 +19,11 @@ void GameWorld05_RobotWars::Init(const CommonUtilities::InputHandler& aInput)
     myArenaBounds = std::make_shared<RectTraversalBounds>(resolution * 0.05f, resolution * 0.95f);
 
     CreateHealthPool();
+    ConfigureDecisionTree();
     CreateRobots();
     myRobotLabels[0].SetText("Decision Tree");
     myRobotLabels[1].SetText("State Machine");
-    myControlsLabel.SetText("Space: damage robot 1 | Enter: damage robot 2 | H: toggle robot 1 healing test");
+    myControlsLabel.SetText("Space: damage robot 1 | Enter: damage robot 2 | H: toggle tree branch (wander / heal)");
     myControlsLabel.SetPosition({40.f, 24.f});
 }
 
@@ -40,7 +42,18 @@ void GameWorld05_RobotWars::CreateRobots()
         robot.SetMass(1.f);
         robot.SetRadius(25.f);
         robot.EnableHealth(100.f, 40.f);
-        SetRobotMovement(robot, index, false);
+        if (index == 0)
+        {
+            robot.SetController(std::make_unique<DecisionTreeController>(myRobotDecisionTree));
+        }
+        else
+        {
+            WanderControllerData wanderData;
+            wanderData.randomSeed = 2u;
+            robot.SetController(std::make_unique<WanderController>(wanderData));
+        }
+        // Wall avoidance contributes alongside either selected movement action.
+        robot.AddController(std::make_unique<ObstacleAvoidanceController>(myWallAvoidanceSettings, myWallObstacles, myArenaBounds));
     }
 }
 
@@ -66,8 +79,15 @@ void GameWorld05_RobotWars::DrawLabels()
     {
         const Actor& robot = myActorManager.GetActor(index);
         Tga::Text& label = myRobotLabels[index];
+        const char* woundedStatus = robot.IsWounded() ? " (wounded)" : "";
+        const char* selectedActionName = "";
+        if (index == 0)
+        {
+            selectedActionName = myTestHealingMode ? " | Heal" : " | Wander";
+        }
         char labelText[128] = {};
-        std::snprintf(labelText, sizeof(labelText), "%s | HP %.0f/%.0f%s", robotNames[index], robot.GetHealth(), robot.GetMaxHealth(), robot.IsWounded() ? " (wounded)" : "");
+        std::snprintf(labelText, sizeof(labelText), "%s | HP %.0f/%.0f%s%s",
+            robotNames[index], robot.GetHealth(), robot.GetMaxHealth(), woundedStatus, selectedActionName);
         label.SetText(labelText);
         label.SetPosition((robot.GetPosition() + CommonUtilities::Vector2f(-label.GetWidth() * 0.5f, 45.f)).ToTga());
         label.Render();
@@ -100,25 +120,18 @@ void GameWorld05_RobotWars::CreateHealthPool()
     myHealthPoolLabel.SetPosition((myHealthPool.position + CommonUtilities::Vector2f(-45.f, -myHealthPool.radius - 20.f)).ToTga());
 }
 
-void GameWorld05_RobotWars::SetRobotMovement(Actor& aRobot, std::size_t aRobotIndex, bool aSeekHealthPool)
+void GameWorld05_RobotWars::ConfigureDecisionTree()
 {
-    // Temporary manual movement selection for testing the health pool.
-    if (aSeekHealthPool)
-    {
-        ArriveControllerData arriveData;
-        arriveData.useRandomTargets = false;
-        arriveData.slowingRadius = myHealthPool.radius;
-        std::unique_ptr<ArriveController> arriveController = std::make_unique<ArriveController>(arriveData);
-        arriveController->SetTargetPosition(myHealthPool.position);
-        aRobot.SetController(std::move(arriveController));
-    }
-    else
-    {
-        WanderControllerData wanderData;
-        wanderData.randomSeed = static_cast<unsigned int>(aRobotIndex + 1);
-        aRobot.SetController(std::make_unique<WanderController>(wanderData));
-    }
-    aRobot.AddController(std::make_unique<ObstacleAvoidanceController>(myWallAvoidanceSettings, myWallObstacles, myArenaBounds));
+    WanderControllerData wanderData;
+    wanderData.randomSeed = 1u;
+    myDecisionTreeWanderController.SetWanderControllerData(wanderData);
+
+    // The healing leaf reuses Arrive with one fixed target at the pool.
+    ArriveControllerData arriveData;
+    arriveData.useRandomTargets = false;
+    arriveData.slowingRadius = myHealthPool.radius;
+    myDecisionTreeArriveController.SetArriveControllerData(arriveData);
+    myDecisionTreeArriveController.SetTargetPosition(myHealthPool.position);
 }
 
 void GameWorld05_RobotWars::UpdateHealthPool(float aDeltaTime)
@@ -151,6 +164,6 @@ void GameWorld05_RobotWars::UpdateTestInput()
     if (myInput->IsKeyPressed(Keys::H))
     {
         myTestHealingMode = !myTestHealingMode;
-        SetRobotMovement(myActorManager.GetActor(0), 0, myTestHealingMode);
+        // The next steering update follows the newly selected tree branch.
     }
 }

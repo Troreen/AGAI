@@ -135,4 +135,19 @@
     <ClInclude Include="..\CommonUtilities\include\Spatial\QuadTree2D.hpp"><Filter>CommonUtilities\include\Spatial</Filter></ClInclude>
     <ClInclude Include="..\CommonUtilities\include\Time\Timer.h"><Filter>CommonUtilities\include\Time</Filter></ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Game\DecisionMaking" />
+    <Filter Include="Game\Controllers\DecisionMaking" />
+    <ClInclude Include="..\Source\Game\source\DecisionMaking\DecisionTreeNode.h"><Filter>Game\DecisionMaking</Filter></ClInclude>
+    <ClInclude Include="..\Source\Game\source\DecisionMaking\DecisionNode.h"><Filter>Game\DecisionMaking</Filter></ClInclude>
+    <ClCompile Include="..\Source\Game\source\DecisionMaking\DecisionNode.cpp"><Filter>Game\DecisionMaking</Filter></ClCompile>
+    <ClInclude Include="..\Source\Game\source\DecisionMaking\ActionNode.h"><Filter>Game\DecisionMaking</Filter></ClInclude>
+    <ClCompile Include="..\Source\Game\source\DecisionMaking\ActionNode.cpp"><Filter>Game\DecisionMaking</Filter></ClCompile>
+    <ClInclude Include="..\Source\Game\source\DecisionMaking\DecisionTree.h"><Filter>Game\DecisionMaking</Filter></ClInclude>
+    <ClCompile Include="..\Source\Game\source\DecisionMaking\DecisionTree.cpp"><Filter>Game\DecisionMaking</Filter></ClCompile>
+    <ClInclude Include="..\Source\Game\source\Controllers\DecisionMaking\DecisionTreeController.h"><Filter>Game\Controllers\DecisionMaking</Filter></ClInclude>
+    <ClCompile Include="..\Source\Game\source\Controllers\DecisionMaking\DecisionTreeController.cpp"><Filter>Game\Controllers\DecisionMaking</Filter></ClCompile>
+    <ClInclude Include="..\Source\Game\source\Worlds\05_RobotWars\HealingTestDecision.h"><Filter>Game\Worlds\05_RobotWars</Filter></ClInclude>
+    <ClCompile Include="..\Source\Game\source\Worlds\05_RobotWars\HealingTestDecision.cpp"><Filter>Game\Worlds\05_RobotWars</Filter></ClCompile>
+  </ItemGroup>
 </Project>

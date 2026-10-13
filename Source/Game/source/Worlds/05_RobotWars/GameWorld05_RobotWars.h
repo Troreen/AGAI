@@ -6,6 +6,11 @@
 #include "../../Interfaces/TraversalBounds.h"
 #include "../../Controllers/Steering/ObstacleAvoidance.h"
 #include "HealthPool.h"
+#include "HealingTestDecision.h"
+#include "../../DecisionMaking/ActionNode.h"
+#include "../../DecisionMaking/DecisionTree.h"
+#include "../../Controllers/Steering/WanderController.h"
+#include "../../Controllers/Steering/ArriveController.h"
 #include <tge/text/text.h>
 #include <array>
 #include <memory>
@@ -21,7 +26,7 @@ public:
 private:
     void CreateRobots();
     void CreateHealthPool();
-    void SetRobotMovement(Actor& aRobot, std::size_t aRobotIndex, bool aSeekHealthPool);
+    void ConfigureDecisionTree();
     void UpdateTestInput();
     void UpdateHealthPool(float aDeltaTime);
     void DrawHealthPool();
@@ -31,6 +36,14 @@ private:
     ObstacleAvoidanceSettings myWallAvoidanceSettings;
     std::vector<CircleObstacle> myWallObstacles;
     HealthPool myHealthPool;
+    // Keep controllers and nodes alive for as long as the actor borrows the tree.
+    bool myTestHealingMode = false;
+    WanderController myDecisionTreeWanderController;
+    ArriveController myDecisionTreeArriveController;
+    ActionNode myWanderAction{myDecisionTreeWanderController};
+    ActionNode myHealingAction{myDecisionTreeArriveController};
+    HealingTestDecision myHealingTestDecision{myTestHealingMode, myHealingAction, myWanderAction};
+    DecisionTree myRobotDecisionTree{myHealingTestDecision};
     ActorManager myActorManager;
     std::shared_ptr<RectTraversalBounds> myArenaBounds;
     std::array<Tga::Text, 2> myRobotLabels;
@@ -39,5 +52,4 @@ private:
     Tga::Text myHealthPoolLabel;
     Tga::Text myControlsLabel;
     const CommonUtilities::InputHandler* myInput = nullptr;
-    bool myTestHealingMode = false;
 };
