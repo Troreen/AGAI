@@ -24,3 +24,8 @@ CommonUtilities::Vector2f DecisionTreeController::GetDesiredVelocity(const Actor
 
     return mySelectedAction->GetDesiredVelocity(aActor);
 }
+
+const ActionNode* DecisionTreeController::GetSelectedAction() const
+{
+    return mySelectedAction;
+}

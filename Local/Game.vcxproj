@@ -296,7 +296,7 @@
     <ClCompile Include="..\Source\Game\source\DecisionMaking\DecisionTree.cpp" />
     <ClInclude Include="..\Source\Game\source\Controllers\DecisionMaking\DecisionTreeController.h" />
     <ClCompile Include="..\Source\Game\source\Controllers\DecisionMaking\DecisionTreeController.cpp" />
-    <ClInclude Include="..\Source\Game\source\Worlds\05_RobotWars\HealingTestDecision.h" />
-    <ClCompile Include="..\Source\Game\source\Worlds\05_RobotWars\HealingTestDecision.cpp" />
+    <ClInclude Include="..\Source\Game\source\Worlds\05_RobotWars\WoundedDecision.h" />
+    <ClCompile Include="..\Source\Game\source\Worlds\05_RobotWars\WoundedDecision.cpp" />
   </ItemGroup>
 </Project>

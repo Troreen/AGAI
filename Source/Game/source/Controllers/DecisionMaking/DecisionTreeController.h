@@ -12,6 +12,7 @@ public:
     explicit DecisionTreeController(DecisionTree& aDecisionTree);
     void Update(Actor& aActor, float aDeltaTime) override;
     CommonUtilities::Vector2f GetDesiredVelocity(const Actor& aActor) const override;
+    const ActionNode* GetSelectedAction() const;
 
 private:
     DecisionTree& myDecisionTree;

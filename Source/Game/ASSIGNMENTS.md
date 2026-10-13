@@ -9,7 +9,7 @@ Change the number in `#define GAME_WORLD_ASSIGNMENT 5` at the top of
 | 2 | GameWorld02_Boids | 100 boids run automatically; tune flocking, avoidance, and debug drawing in Flocking Settings. |
 | 3 | GameWorld03_WorldInterface | Left-click to move. Approach a computer to hack it; inspect the four polling/event guards. |
 | 4 | GameWorld04_NavMesh | Left-click to move the player; the companion plans a path. Inspect navigation in the debug panel. |
-| 5 | GameWorld05_RobotWars | Milestone 4: Space/Enter damage robot 1/2; H switches robot 1's Decision Tree between Wander and Heal. Its label shows the chosen action. Robot 2 still wanders; automatic conditions and the State Machine come later. |
+| 5 | GameWorld05_RobotWars | Milestone 5: Space/Enter damage robot 1/2. Robot 1 automatically seeks the health pool below 40 HP and resumes Wander at 40 HP or above. Its label shows the selected action. Robot 2 still wanders; combat and the State Machine come later. |
 
 `source/Worlds/GameWorld.h` is the small shared interface. Each numbered world owns its own
 scene data and implements Init(input), Update(deltaTime), and Render(). Go keeps
@@ -66,7 +66,7 @@ These checks were repeated after the folder cleanup.
 
 ## Robot Wars milestone 4
 
-The tree follows `DecisionTree -> HealingTestDecision -> ActionNode`. A decision
+The milestone 4 test tree followed `DecisionTree -> HealingTestDecision -> ActionNode`. A decision
 checks its condition and calls `MakeDecision` on the matching child. Children can
 be further decisions; an action leaf returns itself to finish the search. Each
 class has its own file under `source/DecisionMaking`.
@@ -75,10 +75,11 @@ The world owns the nodes and their wander/arrive controllers. These members are
 declared before ActorManager so they outlive the actor that borrows the tree.
 DecisionTreeController selects an action each frame and forwards its update and
 desired velocity. Actor still applies steering and movement, with wall avoidance
-as a separate controller. H changes only the test condition, so switching actions
+as a separate controller. In the milestone 4 test, H changed only the condition, so switching actions
 keeps both movement controllers and their existing state.
 
-Review: press H to seek the pool, damage robot 1 with Space, observe gradual
+Milestone 4 review (before the automatic condition): press H to seek the pool,
+damage robot 1 with Space, observe gradual
 healing, then press H again to resume wandering. Both actions should avoid the
 walls. Robot 2 should keep wandering and respond to Enter. Automatic wounded
 conditions, combat, and State Machine behaviour belong to later milestones.
@@ -89,3 +90,26 @@ startup passed both branches and nested decisions, arrival within one unit of
 the pool, healing capped at 100 HP, switching back to wander, and 60 seconds of
 wandering inside arena bounds at 60/30/10 FPS. Interactive appearance and key
 controls remain for review. The check is under ignored `Temp/DecisionTreeTests`.
+
+## Robot Wars milestone 5
+
+`WoundedDecision` replaces the manual `HealingTestDecision` at the root. It asks
+`Actor::IsWounded()`: true leads to the healing action, false leads to Wander.
+The healing check therefore has priority over normal behaviour. The later combat
+milestone will put an enemy-detection decision on the normal branch.
+
+There is no H toggle now. Press Space three times outside the pool to reduce
+robot 1 from 100 to 25 HP. It should automatically choose Heal, approach the pool,
+and gain 10 HP per second inside it. At 40 HP or above, it chooses Wander again.
+Passive healing continues while it is still inside the pool, so it can leave with
+more than 40 HP. It does not wait for full health. The label displays the action
+selected for the current movement frame. Robot 2 still wanders and takes damage
+with Enter; its automatic behaviour arrives with the State Machine milestone.
+
+Milestone 5 verification: Debug and Release x64 GameMain builds passed.
+`Temp/DecisionTreeTests/AutomaticHealingTests.cpp` checks disabled health,
+100/40/39 HP choices, automatic seeking, gradual 10 HP/s healing, one transition
+back to wandering without threshold oscillation, repeated damage, and wall
+avoidance. All checks passed from three start positions (including near a wall
+and inside the pool) at 60/30/10 FPS. Interactive controls and appearance await
+review before committing this milestone.

@@ -6,7 +6,7 @@
 #include "../../Interfaces/TraversalBounds.h"
 #include "../../Controllers/Steering/ObstacleAvoidance.h"
 #include "HealthPool.h"
-#include "HealingTestDecision.h"
+#include "WoundedDecision.h"
 #include "../../DecisionMaking/ActionNode.h"
 #include "../../DecisionMaking/DecisionTree.h"
 #include "../../Controllers/Steering/WanderController.h"
@@ -37,13 +37,12 @@ private:
     std::vector<CircleObstacle> myWallObstacles;
     HealthPool myHealthPool;
     // Keep controllers and nodes alive for as long as the actor borrows the tree.
-    bool myTestHealingMode = false;
     WanderController myDecisionTreeWanderController;
     ArriveController myDecisionTreeArriveController;
     ActionNode myWanderAction{myDecisionTreeWanderController};
     ActionNode myHealingAction{myDecisionTreeArriveController};
-    HealingTestDecision myHealingTestDecision{myTestHealingMode, myHealingAction, myWanderAction};
-    DecisionTree myRobotDecisionTree{myHealingTestDecision};
+    WoundedDecision myWoundedDecision{myHealingAction, myWanderAction};
+    DecisionTree myRobotDecisionTree{myWoundedDecision};
     ActorManager myActorManager;
     std::shared_ptr<RectTraversalBounds> myArenaBounds;
     std::array<Tga::Text, 2> myRobotLabels;

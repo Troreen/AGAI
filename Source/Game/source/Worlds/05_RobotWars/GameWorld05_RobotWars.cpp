@@ -23,7 +23,7 @@ void GameWorld05_RobotWars::Init(const CommonUtilities::InputHandler& aInput)
     CreateRobots();
     myRobotLabels[0].SetText("Decision Tree");
     myRobotLabels[1].SetText("State Machine");
-    myControlsLabel.SetText("Space: damage robot 1 | Enter: damage robot 2 | H: toggle tree branch (wander / heal)");
+    myControlsLabel.SetText("Space: damage robot 1 | Enter: damage robot 2 | Robot 1 heals automatically below 40 HP");
     myControlsLabel.SetPosition({40.f, 24.f});
 }
 
@@ -83,7 +83,10 @@ void GameWorld05_RobotWars::DrawLabels()
         const char* selectedActionName = "";
         if (index == 0)
         {
-            selectedActionName = myTestHealingMode ? " | Heal" : " | Wander";
+            // Show the action actually used in this frame. Pool healing happens
+            // after movement, so HP may already have crossed the threshold.
+            const DecisionTreeController& treeController = static_cast<const DecisionTreeController&>(*robot.GetController());
+            selectedActionName = treeController.GetSelectedAction() == &myHealingAction ? " | Heal" : " | Wander";
         }
         char labelText[128] = {};
         std::snprintf(labelText, sizeof(labelText), "%s | HP %.0f/%.0f%s%s",
@@ -161,9 +164,4 @@ void GameWorld05_RobotWars::UpdateTestInput()
         myActorManager.GetActor(0).TakeDamage(25.f);
     if (myInput->IsKeyPressed(Keys::RETURN))
         myActorManager.GetActor(1).TakeDamage(25.f);
-    if (myInput->IsKeyPressed(Keys::H))
-    {
-        myTestHealingMode = !myTestHealingMode;
-        // The next steering update follows the newly selected tree branch.
-    }
 }

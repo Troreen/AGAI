@@ -147,7 +147,7 @@
     <ClCompile Include="..\Source\Game\source\DecisionMaking\DecisionTree.cpp"><Filter>Game\DecisionMaking</Filter></ClCompile>
     <ClInclude Include="..\Source\Game\source\Controllers\DecisionMaking\DecisionTreeController.h"><Filter>Game\Controllers\DecisionMaking</Filter></ClInclude>
     <ClCompile Include="..\Source\Game\source\Controllers\DecisionMaking\DecisionTreeController.cpp"><Filter>Game\Controllers\DecisionMaking</Filter></ClCompile>
-    <ClInclude Include="..\Source\Game\source\Worlds\05_RobotWars\HealingTestDecision.h"><Filter>Game\Worlds\05_RobotWars</Filter></ClInclude>
-    <ClCompile Include="..\Source\Game\source\Worlds\05_RobotWars\HealingTestDecision.cpp"><Filter>Game\Worlds\05_RobotWars</Filter></ClCompile>
+    <ClInclude Include="..\Source\Game\source\Worlds\05_RobotWars\WoundedDecision.h"><Filter>Game\Worlds\05_RobotWars</Filter></ClInclude>
+    <ClCompile Include="..\Source\Game\source\Worlds\05_RobotWars\WoundedDecision.cpp"><Filter>Game\Worlds\05_RobotWars</Filter></ClCompile>
   </ItemGroup>
 </Project>
