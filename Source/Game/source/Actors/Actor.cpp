@@ -1,6 +1,8 @@
 #include "Actor.h"
 #include "../Controllers/Controller.h"
 
+#include <algorithm>
+
 namespace
 {
 // Keep a movement or turning amount from going above its allowed maximum.
@@ -212,4 +214,49 @@ void Actor::Draw() const
     auto& spriteDrawer = graphicsEngine.GetSpriteDrawer();
 
     spriteDrawer.Draw(mySharedData, mySpriteInstance);
+}
+
+// Health is enabled only for actors that use damage and healing.
+
+void Actor::EnableHealth(float aMaxHealth, float aWoundedThreshold)
+{
+    myHealthEnabled = true;
+    myMaxHealth = aMaxHealth;
+    myHealth = myMaxHealth;
+    myWoundedThreshold = aWoundedThreshold;
+}
+
+void Actor::TakeDamage(float aDamage)
+{
+    if (myHealthEnabled)
+    {
+        myHealth = (std::max)(0.f, myHealth - aDamage);
+    }
+}
+
+void Actor::Heal(float aAmount)
+{
+    if (myHealthEnabled)
+    {
+        myHealth = (std::min)(myMaxHealth, myHealth + aAmount);
+    }
+}
+
+float Actor::GetHealth() const { return myHealth; }
+float Actor::GetMaxHealth() const { return myMaxHealth; }
+float Actor::GetWoundedThreshold() const { return myWoundedThreshold; }
+
+bool Actor::IsWounded() const
+{
+    if (!myHealthEnabled)
+    {
+        return false;
+    }
+
+    if (myHealth < myWoundedThreshold)
+    {
+        return true;
+    }
+
+    return false;
 }

@@ -19,6 +19,10 @@ CommonUtilities::Vector2f ArriveController::GetDesiredVelocity(const Actor& aAct
 void ArriveController::Update(Actor& aActor, float aDeltaTime)
 {
     KeepTargetReachable(aActor);
+    if (!myArriveData.useRandomTargets)
+    {
+        return;
+    }
     myTargetTimer += aDeltaTime;
     if (myTargetTimer >= myArriveData.targetChangeInterval)
     {

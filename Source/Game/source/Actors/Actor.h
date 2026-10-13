@@ -44,6 +44,14 @@ public:
     void SetPosition(const CommonUtilities::Vector2f& aPosition);
     void Stop();
 
+    void EnableHealth(float aMaxHealth, float aWoundedThreshold);
+    void TakeDamage(float aDamage);
+    void Heal(float aAmount);
+    float GetHealth() const;
+    float GetMaxHealth() const;
+    float GetWoundedThreshold() const;
+    bool IsWounded() const;
+
     Tga::Sprite2DInstanceData GetSpriteInstanceData() const;
     Tga::SpriteSharedData GetSpriteSharedData() const;
     const Controller* GetController() const;
@@ -73,4 +81,9 @@ private:
     float myRotation = 0.f;
     // Actor size used when avoiding obstacles and staying inside bounds.
     float myRadius = 25.f;
+
+    bool myHealthEnabled = false;
+    float myHealth = 100.f;
+    float myMaxHealth = 100.f;
+    float myWoundedThreshold = 40.f;
 };

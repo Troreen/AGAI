@@ -93,6 +93,7 @@
     <ClInclude Include="..\Source\Game\source\Worlds\03_WorldInterface\GameWorld03_WorldInterface.h"><Filter>Game\Worlds\03_WorldInterface</Filter></ClInclude>
     <ClInclude Include="..\Source\Game\source\Worlds\04_NavMesh\GameWorld04_NavMesh.h"><Filter>Game\Worlds\04_NavMesh</Filter></ClInclude>
     <ClInclude Include="..\Source\Game\source\Worlds\05_RobotWars\GameWorld05_RobotWars.h"><Filter>Game\Worlds\05_RobotWars</Filter></ClInclude>
+    <ClInclude Include="..\Source\Game\source\Worlds\05_RobotWars\HealthPool.h"><Filter>Game\Worlds\05_RobotWars</Filter></ClInclude>
     <ClInclude Include="..\Source\Game\source\Worlds\01_Controllers\SteeringDebugRenderer.h"><Filter>Game\Worlds\01_Controllers</Filter></ClInclude>
     <ClInclude Include="..\CommonUtilities\include\Algorithms\SolveSudoku.hpp"><Filter>CommonUtilities\include\Algorithms</Filter></ClInclude>
     <ClInclude Include="..\CommonUtilities\include\Containers\BSTSet.hpp"><Filter>CommonUtilities\include\Containers</Filter></ClInclude>

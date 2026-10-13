@@ -241,6 +241,7 @@
     <ClInclude Include="..\Source\Game\source\Worlds\04_NavMesh\GameWorld04_NavMesh.h" />
     <ClCompile Include="..\Source\Game\source\Worlds\05_RobotWars\GameWorld05_RobotWars.cpp" />
     <ClInclude Include="..\Source\Game\source\Worlds\05_RobotWars\GameWorld05_RobotWars.h" />
+    <ClInclude Include="..\Source\Game\source\Worlds\05_RobotWars\HealthPool.h" />
     <ClCompile Include="..\Source\Game\source\Worlds\01_Controllers\SteeringDebugRenderer.cpp" />
     <ClInclude Include="..\Source\Game\source\Worlds\01_Controllers\SteeringDebugRenderer.h" />
   </ItemGroup>

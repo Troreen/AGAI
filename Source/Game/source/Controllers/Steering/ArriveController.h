@@ -8,6 +8,8 @@ struct ArriveControllerData : TargetControllerData
     float slowingRadius = 100.f;
     // Seconds before the arrive controller selects another random target.
     float targetChangeInterval = 5.f;
+    // Fixed targets are supplied by the caller when this is disabled.
+    bool useRandomTargets = true;
 };
 
 class ArriveController final : public TargetController
