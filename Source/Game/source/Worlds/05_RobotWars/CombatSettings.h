@@ -1,6 +1,6 @@
 #pragma once
 
-// Both robots use these values. Distances and speeds are in screen pixels;
+// Every robot uses these values. Distances and speeds are in screen pixels;
 // intervals and lifetimes are in seconds, and damage is measured in HP.
 struct CombatSettings
 {

@@ -10,11 +10,19 @@ Change `GAME_WORLD_ASSIGNMENT` at the top of `Source/Game/source/Go.cpp`, then r
 | 1 | `GameWorld01_Controllers` - Seek, Arrive, Wander and tuning/debug drawing |
 | 2 | `GameWorld02_Boids` - flocking, grid neighbours and obstacle avoidance |
 | 3 | `GameWorld03_WorldInterface` - computers and polling/event guards |
-| 4 | `GameWorld04_NavMesh` - NavMesh and companion (default) |
+| 4 | `GameWorld04_NavMesh` - NavMesh and companion |
+| 5 | `GameWorld05_RobotWars` - Decision Tree and State Machine battle |
+| 6 | `GameWorld06_BehaviourTree` - three-robot battle with Sir Killalot (default) |
 
-All four compile together and share actors, steering controllers, input, and engine setup.
+All six compile together and share actors, steering controllers, input, and engine setup.
 Each world owns its scene and settings; `GameWorld` defines `Init`, `Update`, and `Render`.
 See [assignment worlds](Source/Game/ASSIGNMENTS.md) for the restored sources and controls.
+
+**U06 - Behaviour Tree** adds Sir Killalot to the shared Robot Wars arena.
+Its tree remembers a running action and reselects when a watched condition changes.
+Space, Enter, and Backspace damage robots 1, 2, and 3; R resets the battle.
+See [Behaviour Tree](Source/Game/BEHAVIOUR_TREE.md) for the tree, execution flow,
+reading guide, and verification results.
 
 **U04 - NavMesh and Companion** provides:
 

@@ -29,7 +29,7 @@ void GameWorld05_RobotWars::Init(const CommonUtilities::InputHandler& aInput)
         myBehaviourTree = std::make_unique<RobotWarsBehaviourTree>(myBulletSystem, myCombatSettings);
     ConfigureRobotMovement();
     CreateRobots();
-    // Both actors must exist before either combat controller can borrow its enemy.
+    // Create the actors before the combat controllers borrow their enemies.
     myDecisionTreeCombatController.SetEnemy(myActorManager.GetActor(1));
     myStateMachineCombatController.SetEnemy(myActorManager.GetActor(0));
     myBulletSpriteData.texture = Tga::GraphicsEngine::GetInstance()->GetTextureManager().GetTexture("Sprites/ninjaStar.png");
@@ -44,8 +44,8 @@ void GameWorld05_RobotWars::Init(const CommonUtilities::InputHandler& aInput)
 
 void GameWorld05_RobotWars::CreateRobots()
 {
-    // Give both robots the same movement and health settings. Only their way
-    // of choosing actions differs: robot 1 has a tree, robot 2 has states.
+    // Give every robot the same movement and health settings. Their AI differs:
+    // robot 1 has decisions, robot 2 has states, and U06 adds a behaviour tree.
     const char* spritePaths[3] = {"Sprites/robot1.png", "Sprites/robot2.png", "Sprites/robot1.png"};
     const std::size_t robotCount = myEnableBehaviourTree ? 3u : 2u;
     for (std::size_t robotIndex = 0; robotIndex < robotCount; ++robotIndex)
@@ -212,7 +212,7 @@ void GameWorld05_RobotWars::ConfigureRobotMovement()
     wanderData.randomSeed = 2u;
     myStateMachineWanderController.SetWanderControllerData(wanderData);
 
-    // Both healing actions use Arrive with the pool as a fixed target. Wandering
+    // Healing actions use Arrive with the pool as a fixed target. Wandering
     // chooses new directions, but healing must keep aiming at the same place.
     ArriveControllerData arriveData;
     arriveData.useRandomTargets = false;
