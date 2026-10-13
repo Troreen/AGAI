@@ -57,6 +57,9 @@ void CombatController::ResetCooldown()
     myTimeUntilNextShot = 0.f;
 }
 
+const Actor* CombatController::GetEnemy() const { return myEnemy; }
+float CombatController::GetTimeUntilNextShot() const { return myTimeUntilNextShot; }
+
 void CombatController::Update(Actor& aActor, float /*aDeltaTime*/)
 {
     // The AI calls this only when Combat is selected. Aim at the enemy's

@@ -44,6 +44,10 @@ private:
     void DrawHealthPool();
     void DrawLabels();
     void DrawWallDebug();
+    void DrawDebugUI();
+    const char* GetRobotName(std::size_t aRobotIndex) const;
+    const char* GetRobotActionName(std::size_t aRobotIndex) const;
+    CombatController& GetRobotCombatController(std::size_t aRobotIndex);
 
     ObstacleAvoidanceSettings myWallAvoidanceSettings;
     std::vector<CircleObstacle> myWallObstacles;
@@ -75,9 +79,11 @@ private:
     Tga::Sprite2DInstanceData myHealthPoolSprite = {};
     Tga::SpriteSharedData myBulletSpriteData = {};
     Tga::Text myHealthPoolLabel;
-    Tga::Text myControlsLabel;
 #ifndef _RETAIL
-    Tga::Text myBehaviourTreeDebugLabel;
+    bool myPauseBattle = false;
+    bool myStepBattle = false;
+    bool myShowWalls = false;
+    bool myShowRobotLabels = true;
 #endif
     const bool myEnableBehaviourTree;
     const CommonUtilities::InputHandler* myInput = nullptr;

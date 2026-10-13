@@ -30,3 +30,8 @@ const ActionNode* DecisionTreeController::GetSelectedAction() const
 {
     return mySelectedAction;
 }
+
+void DecisionTreeController::Reset()
+{
+    mySelectedAction = nullptr;
+}

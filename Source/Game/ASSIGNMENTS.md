@@ -9,7 +9,7 @@ Change the number in `#define GAME_WORLD_ASSIGNMENT 6` at the top of
 | 2 | GameWorld02_Boids | 100 boids run automatically; tune flocking, avoidance, and debug drawing in Flocking Settings. |
 | 3 | GameWorld03_WorldInterface | Left-click to move. Approach a computer to hack it; inspect the four polling/event guards. |
 | 4 | GameWorld04_NavMesh | Left-click to move the player; the companion plans a path. Inspect navigation in the debug panel. |
-| 5 | GameWorld05_RobotWars | Both robots battle automatically: Decision Tree and State Machine. Space/Enter damage robot 1/2; R resets the battle. Below 40 HP, either robot seeks the pool. Defeated robots respawn after 3 seconds. Labels show HP, action/state, and the respawn countdown. |
+| 5 | GameWorld05_RobotWars | Both robots battle automatically: Decision Tree and State Machine. Space/Enter damage robot 1/2; R resets the battle. Below 40 HP, either robot seeks the pool. Defeated robots respawn after 3 seconds. Compact labels show HP; collapsible ImGui windows show action/state, targets, timers and battle controls in Debug/Release. |
 | 6 | GameWorld06_BehaviourTree | Three robots: Decision Tree, State Machine, and Sir Killalot's Behaviour Tree. Space/Enter/Backspace damage robots 1/2/3; R resets. All three target their nearest living enemy and use the same healing, combat, and respawn rules. |
 
 `source/Worlds/GameWorld.h` is the small shared interface. Each numbered world owns its own

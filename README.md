@@ -21,6 +21,8 @@ See [assignment worlds](Source/Game/ASSIGNMENTS.md) for the restored sources and
 **U06 - Behaviour Tree** adds Sir Killalot to the shared Robot Wars arena.
 Its tree remembers a running action and reselects when a watched condition changes.
 Space, Enter, and Backspace damage robots 1, 2, and 3; R resets the battle.
+Debug/Release include collapsible ImGui battle, robot and tree inspection windows
+with pause, single-step and reset controls.
 See [Behaviour Tree](Source/Game/BEHAVIOUR_TREE.md) for the tree, execution flow,
 reading guide, and verification results.
 

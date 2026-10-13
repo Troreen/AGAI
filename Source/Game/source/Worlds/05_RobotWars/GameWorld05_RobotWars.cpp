@@ -11,6 +11,11 @@
 #include <tge/graphics/GraphicsEngine.h>
 #include <Input/InputHandler.h>
 #include <cstdio>
+#include <algorithm>
+#ifndef _RETAIL
+#include <imgui/imgui.h>
+#include <tge/graphics/DX11.h>
+#endif
 
 GameWorld05_RobotWars::GameWorld05_RobotWars(bool aEnableBehaviourTree)
     : myEnableBehaviourTree(aEnableBehaviourTree)
@@ -36,10 +41,7 @@ void GameWorld05_RobotWars::Init(const CommonUtilities::InputHandler& aInput)
     myRobotLabels[0].SetText("Decision Tree");
     myRobotLabels[1].SetText("State Machine");
     myRobotLabels[2].SetText("Sir Killalot");
-    myControlsLabel.SetText(myEnableBehaviourTree
-        ? "Space/Enter/Backspace: damage robot 1/2/3 | R: reset battle"
-        : "Space/Enter: damage robot 1/2 | R: reset battle");
-    myControlsLabel.SetPosition({40.f, 24.f});
+
 }
 
 void GameWorld05_RobotWars::CreateRobots()
@@ -79,15 +81,24 @@ void GameWorld05_RobotWars::CreateRobots()
 void GameWorld05_RobotWars::Update(float aTimeDelta)
 {
     UpdateBattleInput();
+    // Damage keys also work while paused; clear a defeated tree right away.
+    if (myBehaviourTree && !myActorManager.GetActor(2).IsAlive())
+        myBehaviourTree->GetTree().Reset();
+#ifndef _RETAIL
+    // Pause freezes actors, bullets, healing and respawn timers together.
+    if (myPauseBattle && !myStepBattle) return;
+    if (myStepBattle)
+    {
+        aTimeDelta = 1.f / 60.f;
+        myStepBattle = false;
+    }
+#endif
     if (myBehaviourTree)
     {
         // Choose from the same start-of-frame positions for all three robots.
         myDecisionTreeCombatController.SelectNearestEnemy(myActorManager.GetActor(0), myActorManager);
         myStateMachineCombatController.SelectNearestEnemy(myActorManager.GetActor(1), myActorManager);
         myBehaviourTree->GetCombatController().SelectNearestEnemy(myActorManager.GetActor(2), myActorManager);
-        // Death pauses Actor's AI. Forget its old execution before respawning.
-        if (!myActorManager.GetActor(2).IsAlive())
-            myBehaviourTree->GetTree().Reset();
         myBehaviourTree->GetCombatController().UpdateCooldown(aTimeDelta);
     }
     // Shot timers keep counting down while a robot heals, wanders, or is dead.
@@ -110,69 +121,185 @@ void GameWorld05_RobotWars::Render()
     DrawBullets();
     DrawLabels();
     DrawWallDebug();
+    DrawDebugUI();
 }
 
+// Names and HP identify the robots; the inspection windows hold the details.
 void GameWorld05_RobotWars::DrawLabels()
 {
-    const char* robotNames[3] = {"Decision Tree", "State Machine", "Sir Killalot (Behaviour Tree)"};
-    for (std::size_t robotIndex = 0; robotIndex < myActorManager.GetActorCount(); ++robotIndex)
+#ifndef _RETAIL
+    if (!myShowRobotLabels) return;
+#endif
+    for (std::size_t index = 0; index < myActorManager.GetActorCount(); ++index)
     {
-        const Actor& robot = myActorManager.GetActor(robotIndex);
-        Tga::Text& label = myRobotLabels[robotIndex];
-        const char* woundedStatus = robot.IsAlive() && robot.IsWounded() ? " (wounded)" : "";
-        const char* selectedBehaviourText = "";
-        if (!robot.IsAlive())
-        {
-            selectedBehaviourText = " | Defeated";
-        }
-        else if (robotIndex == 0)
-        {
-            // Show the action actually used in this frame. Pool healing happens
-            // after movement, so HP may already have crossed the threshold.
-            const DecisionTreeController& treeController = static_cast<const DecisionTreeController&>(*robot.GetController());
-            if (treeController.GetSelectedAction() == &myDecisionTreeHealingAction)
-                selectedBehaviourText = " | Heal";
-            else if (treeController.GetSelectedAction() == &myDecisionTreeCombatAction)
-                selectedBehaviourText = " | Combat";
-            else
-                selectedBehaviourText = " | Wander";
-        }
-        else if (robotIndex == 1)
-        {
-            const StateMachineController& stateMachineController = static_cast<const StateMachineController&>(*robot.GetController());
-            switch (stateMachineController.GetState())
-            {
-            case RobotState::Heal: selectedBehaviourText = " | Heal"; break;
-            case RobotState::Combat: selectedBehaviourText = " | Combat"; break;
-            case RobotState::Wander: selectedBehaviourText = " | Wander"; break;
-            }
-        }
-        else
-        {
-            selectedBehaviourText = myBehaviourTree->GetActionName();
-        }
-        char labelText[128] = {};
-        std::snprintf(labelText, sizeof(labelText), "%s | HP %.0f/%.0f%s%s%s",
-            robotNames[robotIndex], robot.GetHealth(), robot.GetMaxHealth(), woundedStatus,
-            robotIndex == 2 && robot.IsAlive() ? " | " : "", selectedBehaviourText);
-        if (!robot.IsAlive())
-            std::snprintf(labelText, sizeof(labelText), "%s | HP 0/%.0f | Respawn %.1fs",
-                robotNames[robotIndex], robot.GetMaxHealth(), robot.GetRespawnTimeRemaining());
-        label.SetText(labelText);
+        const Actor& robot = myActorManager.GetActor(index);
+        Tga::Text& label = myRobotLabels[index];
+        char text[80] = {};
+        std::snprintf(text, sizeof(text), "%s | HP %.0f/%.0f",
+            GetRobotName(index), robot.GetHealth(), robot.GetMaxHealth());
+        label.SetText(text);
         label.SetPosition((robot.GetPosition() + CommonUtilities::Vector2f(-label.GetWidth() * 0.5f, 45.f)).ToTga());
         label.Render();
     }
+}
+
+const char* GameWorld05_RobotWars::GetRobotName(std::size_t aRobotIndex) const
+{
+    const char* names[] = {"Decision Tree", "State Machine", "Sir Killalot"};
+    return names[aRobotIndex];
+}
+
+const char* GameWorld05_RobotWars::GetRobotActionName(std::size_t aRobotIndex) const
+{
+    const Actor& robot = myActorManager.GetActor(aRobotIndex);
+    if (!robot.IsAlive()) return "Defeated";
+    if (aRobotIndex == 0)
+    {
+        const auto& controller = static_cast<const DecisionTreeController&>(*robot.GetController());
+        const ActionNode* action = controller.GetSelectedAction();
+        if (action == &myDecisionTreeHealingAction) return "Heal";
+        if (action == &myDecisionTreeCombatAction) return "Combat";
+        if (action == &myDecisionTreeWanderAction) return "Wander";
+        return "Idle";
+    }
+    if (aRobotIndex == 1)
+    {
+        const auto& controller = static_cast<const StateMachineController&>(*robot.GetController());
+        switch (controller.GetState())
+        {
+        case RobotState::Heal: return "Heal";
+        case RobotState::Combat: return "Combat";
+        case RobotState::Wander: return "Wander";
+        }
+        return "Idle";
+    }
+    return myBehaviourTree->GetActionName();
+}
+
+CombatController& GameWorld05_RobotWars::GetRobotCombatController(std::size_t aRobotIndex)
+{
+    if (aRobotIndex == 0) return myDecisionTreeCombatController;
+    if (aRobotIndex == 1) return myStateMachineCombatController;
+    return myBehaviourTree->GetCombatController();
+}
+
+void GameWorld05_RobotWars::DrawDebugUI()
+{
 #ifndef _RETAIL
+    // Use the existing ImGui style. Each window can be moved, resized or folded.
+    const ImGuiViewport* viewport = ImGui::GetMainViewport();
+    const float width = (std::min)(360.f, viewport->WorkSize.x - 20.f);
+    const float height = viewport->WorkSize.y - 60.f;
+    const float battleHeight = height * 0.30f;
+    const float robotsHeight = height * (myBehaviourTree ? 0.44f : 0.68f);
+    const ImVec2 origin = {viewport->WorkPos.x + viewport->WorkSize.x - width - 10.f, viewport->WorkPos.y + 10.f};
+    ImGui::SetNextWindowViewport(viewport->ID);
+    ImGui::SetNextWindowPos(origin, ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize({width, battleHeight}, ImGuiCond_FirstUseEver);
+    if (ImGui::Begin("Robot Wars - Battle"))
+    {
+        ImGui::Text("%.1f FPS | %.2f ms", ImGui::GetIO().Framerate,
+            ImGui::GetIO().Framerate > 0.f ? 1000.f / ImGui::GetIO().Framerate : 0.f);
+        ImGui::Text("Robots: %zu | Flying bullets: %zu", myActorManager.GetActorCount(), myBulletSystem.GetBullets().size());
+        ImGui::Text("Draw calls: %d", Tga::DX11::GetPreviousDrawCallCount());
+        ImGui::Checkbox("Pause", &myPauseBattle);
+        if (myPauseBattle)
+        {
+            ImGui::SameLine();
+            if (ImGui::Button("Step 1/60 s")) myStepBattle = true;
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Reset battle")) ResetBattle();
+        if (ImGui::CollapsingHeader("Controls and visuals"))
+        {
+            ImGui::TextWrapped(myBehaviourTree ? "Space / Enter / Backspace: damage robots 1 / 2 / 3. R resets the battle."
+                : "Space / Enter: damage robots 1 / 2. R resets the battle.");
+            ImGui::Checkbox("Show names and HP", &myShowRobotLabels);
+            ImGui::Checkbox("Show arena walls", &myShowWalls);
+        }
+        if (ImGui::CollapsingHeader("Shared settings"))
+        {
+            ImGui::Text("Vision %.0f px | Chase gap %.0f px", myCombatSettings.detectionRadius, myCombatSettings.stoppingDistance);
+            ImGui::Text("Shot %.0f HP every %.2f s", myCombatSettings.bulletDamage, myCombatSettings.fireInterval);
+            ImGui::Text("Bullet %.0f px/s | Lifetime %.1f s", myCombatSettings.bulletSpeed, myCombatSettings.bulletLifetime);
+            ImGui::Text("Pool %.0f px | Healing %.0f HP/s", myHealthPool.radius, myHealthPool.healingPerSecond);
+        }
+    }
+    ImGui::End();
+
+    ImGui::SetNextWindowViewport(viewport->ID);
+    ImGui::SetNextWindowPos({origin.x, origin.y + battleHeight + 10.f}, ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize({width, robotsHeight}, ImGuiCond_FirstUseEver);
+    if (ImGui::Begin("Robot Wars - Robots"))
+    {
+        for (std::size_t index = 0; index < myActorManager.GetActorCount(); ++index)
+        {
+            Actor& robot = myActorManager.GetActor(index);
+            ImGui::PushID(static_cast<int>(index));
+            ImGui::Text("%s: %s", GetRobotName(index), GetRobotActionName(index));
+            char health[40] = {};
+            std::snprintf(health, sizeof(health), "HP %.0f / %.0f", robot.GetHealth(), robot.GetMaxHealth());
+            ImGui::ProgressBar(robot.GetHealth() / robot.GetMaxHealth(), {-1.f, 0.f}, health);
+            if (ImGui::CollapsingHeader("Inspect"))
+            {
+                const CombatController& combat = GetRobotCombatController(index);
+                ImGui::Text("Wounded: %s (below %.0f HP)", robot.IsWounded() ? "yes" : "no", robot.GetWoundedThreshold());
+                if (!robot.IsAlive()) ImGui::Text("Respawn in %.2f s", robot.GetRespawnTimeRemaining());
+                const bool inPool = robot.GetPosition().DistanceSqr(myHealthPool.position) <= myHealthPool.radius * myHealthPool.radius;
+                ImGui::Text("Inside pool: %s", inPool ? "yes" : "no");
+                ImGui::Text("Position: %.1f, %.1f", robot.GetPosition().x, robot.GetPosition().y);
+                ImGui::Text("Velocity: %.1f, %.1f", robot.GetVelocity().x, robot.GetVelocity().y);
+                ImGui::Text("Speed: %.1f / %.0f px/s", robot.GetVelocity().Length(), robot.GetMaxSpeed());
+                ImGui::Text("Next shot in %.2f s", combat.GetTimeUntilNextShot());
+                const Actor* enemy = combat.GetEnemy();
+                if (enemy)
+                {
+                    for (std::size_t enemyIndex = 0; enemyIndex < myActorManager.GetActorCount(); ++enemyIndex)
+                        if (enemy == &myActorManager.GetActor(enemyIndex)) ImGui::Text("Target: %s", GetRobotName(enemyIndex));
+                    ImGui::Text("Distance: %.1f px | Detected: %s", robot.GetPosition().Distance(enemy->GetPosition()),
+                        combat.HasDetectedEnemy(robot) ? "yes" : "no");
+                }
+                else ImGui::TextUnformatted("Target: none");
+                if (ImGui::Button("Damage 25 HP")) robot.TakeDamage(25.f);
+                ImGui::SameLine();
+                if (ImGui::Button("Heal 25 HP")) robot.Heal(25.f);
+                // UI damage happens after Update; clear a defeated BT immediately.
+                if (index == 2 && !robot.IsAlive()) myBehaviourTree->GetTree().Reset();
+            }
+            ImGui::PopID();
+        }
+    }
+    ImGui::End();
+
     if (myBehaviourTree)
     {
-        char debugText[128] = {};
-        const BehaviourTree& tree = myBehaviourTree->GetTree();
-        std::snprintf(debugText, sizeof(debugText), "BT: %s | %s | root traversals: %zu",
-            myBehaviourTree->GetActionName(), tree.GetRunningAction() ? "Running" : "Idle",
-            tree.GetRootTraversalCount());
-        myBehaviourTreeDebugLabel.SetText(debugText);
-        myBehaviourTreeDebugLabel.SetPosition({40.f, 50.f});
-        myBehaviourTreeDebugLabel.Render();
+        ImGui::SetNextWindowViewport(viewport->ID);
+        ImGui::SetNextWindowPos({origin.x, origin.y + battleHeight + robotsHeight + 20.f}, ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSize({width, height - battleHeight - robotsHeight}, ImGuiCond_FirstUseEver);
+        if (ImGui::Begin("Robot Wars - Behaviour Tree"))
+        {
+            const BehaviourTree& tree = myBehaviourTree->GetTree();
+            const Actor& robot = myActorManager.GetActor(2);
+            ImGui::Text("Action: %s | %s", GetRobotActionName(2), tree.GetRunningAction() ? "Running" : "Idle");
+            ImGui::Text("Root traversals: %zu", tree.GetRootTraversalCount());
+            if (ImGui::IsItemHovered())
+                ImGui::SetTooltip("An unchanged counter means the tree is resuming its running action.");
+            if (ImGui::CollapsingHeader("Conditions"))
+            {
+                ImGui::Text("Wounded: %s", robot.IsWounded() ? "true" : "false");
+                ImGui::Text("Enemy detected: %s", myBehaviourTree->GetCombatController().HasDetectedEnemy(robot) ? "true" : "false");
+            }
+            if (ImGui::CollapsingHeader("Branch order"))
+            {
+                ImGui::TextUnformatted("Selector");
+                ImGui::Indent();
+                ImGui::TextUnformatted("Sequence: Wounded -> Heal");
+                ImGui::TextUnformatted("Sequence: Enemy detected -> Combat");
+                ImGui::TextUnformatted("Wander");
+                ImGui::Unindent();
+            }
+        }
+        ImGui::End();
     }
 #endif
 }
@@ -180,6 +307,7 @@ void GameWorld05_RobotWars::DrawLabels()
 void GameWorld05_RobotWars::DrawWallDebug()
 {
 #ifndef _RETAIL
+    if (!myShowWalls) return;
     Tga::DebugDrawer& drawer = Tga::GraphicsEngine::GetInstance()->GetDebugDrawer();
     const CommonUtilities::Vector2f minimum = myArenaBounds->GetMin();
     const CommonUtilities::Vector2f maximum = myArenaBounds->GetMax();
@@ -245,11 +373,13 @@ void GameWorld05_RobotWars::DrawHealthPool()
     Tga::SpriteDrawer& drawer = Tga::GraphicsEngine::GetInstance()->GetSpriteDrawer();
     drawer.Draw(myHealthPoolSpriteData, myHealthPoolSprite);
     myHealthPoolLabel.Render();
-    myControlsLabel.Render();
 }
 
 void GameWorld05_RobotWars::UpdateBattleInput()
 {
+#ifndef _RETAIL
+    if (ImGui::GetCurrentContext() && ImGui::GetIO().WantCaptureKeyboard) return;
+#endif
     // Pressed checks apply damage once per press, rather than every held frame.
     if (myInput->IsKeyPressed(Keys::R))
         ResetBattle();
@@ -287,6 +417,7 @@ void GameWorld05_RobotWars::ResetBattle()
         myBehaviourTree->GetTree().Reset();
         myBehaviourTree->GetCombatController().ResetCooldown();
     }
+    static_cast<DecisionTreeController&>(*myActorManager.GetActor(0).GetController()).Reset();
     static_cast<StateMachineController&>(*myActorManager.GetActor(1).GetController()).Reset();
     for (std::size_t robotIndex = 0; robotIndex < myActorManager.GetActorCount(); ++robotIndex)
     {

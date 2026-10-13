@@ -16,6 +16,8 @@ public:
     // U06 chooses once before the robots move. Actor order breaks equal ties.
     void SelectNearestEnemy(const Actor& aActor, ActorManager& aActors);
     bool HasDetectedEnemy(const Actor& aActor) const;
+    const Actor* GetEnemy() const;
+    float GetTimeUntilNextShot() const;
     // The world advances this timer; only an active Combat action fires a shot.
     void UpdateCooldown(float aDeltaTime);
     void ResetCooldown();

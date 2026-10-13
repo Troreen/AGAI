@@ -93,6 +93,11 @@ void Go()
     cfg.activateDebugSystems = Tga::DebugFeature::Fps | Tga::DebugFeature::Filewatcher;
 #endif
 
+#if GAME_WORLD_ASSIGNMENT == 5 || GAME_WORLD_ASSIGNMENT == 6
+    // Robot Wars keeps its diagnostics in ImGui, leaving the arena readable.
+    cfg.activateDebugSystems = Tga::DebugFeature::Filewatcher;
+#endif
+
     // Create the real window and renderer before creating anything in the game.
     if (!Tga::Application::Start() || !Tga::GraphicsEngine::Start())
     {

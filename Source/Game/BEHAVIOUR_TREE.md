@@ -78,9 +78,9 @@ chooses afresh. R clears bullets, cooldowns, state-machine state and BT executio
 then restores all robots' health, position and velocity.
 
 Space damages robot 1, Enter robot 2, and Backspace Sir Killalot by 25 HP per
-press. Sir Killalot has a green tint and a name/HP/action label. Debug and Release
-also show its Running status and cumulative root-traversal count at the bottom
-of the arena. Retail omits that debug line while retaining gameplay labels.
+press. Sir Killalot has a green tint and a name/HP label. Debug and Release
+show Running status and cumulative root traversals in a collapsible ImGui window.
+Retail keeps compact name/HP labels and omits the debug windows.
 
 ## Milestone 5 reading order
 
@@ -160,7 +160,7 @@ are outside this implementation.
 | Third actor with the same behaviours | Sir Killalot is a normal Actor using BehaviourTreeController. The real scene exercises Heal, Combat and Wander alongside the Decision Tree and State Machine. |
 | Selector and Sequence | RobotWarsBehaviourTree has one Selector and two Sequences with ordered condition/action children. Composite tests cover both flow rules and nested continuation. |
 | Conditions are leaves | BT_WoundedCondition and BT_EnemyDetectedCondition inherit BT_LeafNodeCondition; no condition decorators are used. |
-| Remember execution rather than traversing the root every frame | Stable-condition tests count one root traversal across repeated action updates. Changed failed or selected conditions interrupt before the old action updates. The debug line displays cumulative traversals. |
+| Remember execution rather than traversing the root every frame | Stable-condition tests count one root traversal across repeated action updates. Changed failed or selected conditions interrupt before the old action updates. The ImGui tree window displays cumulative traversals. |
 | Same healing priority | Below 40 HP selects Heal with no extra shot; 39/40 boundary checks pass. The real pool restores 10 HP/s and caps HP at 100. |
 | Vision, chasing, shooting and wandering | All robots share nearest living target selection in U06. Tests cover self/dead filtering, equal-distance ordering, no enemy, retargeting, and bullets retaining their firing-time target. Existing chase/projectile tests pass. |
 | Death and respawn remain in Actor | Three-second respawn restores health and spawn position. Dead actors skip movement and AI; fatal bullet damage clears BT execution before rendering. Battle reset clears previous execution and flying shots. |
@@ -185,3 +185,42 @@ Tests and build logs are under ignored `Temp/U06` and `Temp/DecisionTreeTests`;
 there is no added production test harness. Visual interaction has not been
 manually reviewed in this final pass; rendering and label contents were checked
 by the real-engine harness. No submission package or remote push was made.
+
+
+## ImGui inspection windows
+
+Debug and Release use three movable, resizable windows in U06 and two in U05.
+Their title bars collapse
+the whole window; inspection sections also fold independently. The arena keeps
+compact names and HP, while actions, states and diagnostics are in ImGui. The
+fixed controls/BT text and built-in engine statistic overlays have been removed
+for selectors 5 and 6. Retail keeps names and HP without debug UI.
+
+- **Battle:** FPS, frame time, draw calls and bullet count; Pause, Step 1/60 s and
+  Reset; collapsible controls/visuals and shared combat/pool settings. Walls are
+  off initially, and both walls and arena labels can be toggled.
+- **Robots:** action/state and HP bars for each robot; collapsible inspection
+  shows wounded status, pool membership, respawn countdown, position, velocity,
+  speed, selected enemy, distance/detection and firing cooldown. Damage/Heal
+  buttons apply 25 HP to the selected robot. Dead robots cannot be healed.
+- **Behaviour Tree (U06):** selected action, Running/Idle status, cumulative root
+  traversals, condition results and the Selector/Sequence branch order.
+
+Pause freezes actors, bullets, pool healing and respawn countdowns together.
+Step advances one fixed 1/60-second frame while paused. UI keyboard capture
+prevents focused ImGui navigation from applying the battle's damage/reset keys.
+Read `GameWorld05_RobotWars::DrawDebugUI`, `GetRobotActionName` and
+`GetRobotCombatController` for UI data flow. The combat controller's read-only
+`GetEnemy` and `GetTimeUntilNextShot` expose existing state without changing AI.
+
+The earlier final verification section records the milestone 6 version, before
+this UI replacement. The new ImGui checks use compact labels and the windows
+in place of the removed fixed BT line.
+
+UI verification: Debug, Release and Retail builds passed with `/W4 /WX`. The
+real-scene harness passed collapse/expand, pause/fixed-step, keyboard capture,
+paused death and reset, compact labels, and the existing 60/30/10 FPS battles.
+Rendered screenshots were inspected with 1600x900 and 1280x720 window settings,
+including an expanded robot inspector. Default window bounds fit the viewport;
+expanded details scroll. Checks remain under ignored `Temp/U06/ImGuiScene.cpp`
+and `ImGuiPreview.cpp`.

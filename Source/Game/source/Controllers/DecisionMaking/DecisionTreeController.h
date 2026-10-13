@@ -13,6 +13,7 @@ public:
     void Update(Actor& aActor, float aDeltaTime) override;
     CommonUtilities::Vector2f GetDesiredVelocity(const Actor& aActor) const override;
     const ActionNode* GetSelectedAction() const;
+    void Reset();
 
 private:
     DecisionTree& myDecisionTree;
