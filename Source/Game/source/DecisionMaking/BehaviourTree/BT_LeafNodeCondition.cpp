@@ -1,6 +1,9 @@
 #include "BT_LeafNodeCondition.h"
+#include "BehaviourTree.h"
 
-BT_NodeResult BT_LeafNodeCondition::Update(Actor& aActor, float, BehaviourTree&)
+BT_NodeResult BT_LeafNodeCondition::Update(Actor& aActor, float, BehaviourTree& aTree)
 {
-    return Evaluate(aActor) ? BT_NodeResult::Success : BT_NodeResult::Failure;
+    const bool result = Evaluate(aActor);
+    aTree.RememberCondition(*this, result);
+    return result ? BT_NodeResult::Success : BT_NodeResult::Failure;
 }

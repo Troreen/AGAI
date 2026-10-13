@@ -13,7 +13,7 @@ public:
     CommonUtilities::Vector2f GetDesiredVelocity(const Actor& aActor) const override;
 
 protected:
-    BT_NodeResult Update(Actor& aActor, float aDeltaTime, BehaviourTree& aTree) override;
+    BT_NodeResult Execute(Actor& aActor, float aDeltaTime, BehaviourTree& aTree) override;
 
 private:
     Controller& myController;

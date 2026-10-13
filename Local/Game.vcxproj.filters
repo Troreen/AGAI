@@ -184,4 +184,10 @@
     <ClInclude Include="..\Source\Game\source\DecisionMaking\BehaviourTree\BT_ControllerAction.h"><Filter>Game\DecisionMaking\BehaviourTree</Filter></ClInclude>
     <ClCompile Include="..\Source\Game\source\DecisionMaking\BehaviourTree\BT_ControllerAction.cpp"><Filter>Game\DecisionMaking\BehaviourTree</Filter></ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Source\Game\source\DecisionMaking\BehaviourTree\BehaviourTree.h"><Filter>Game\DecisionMaking\BehaviourTree</Filter></ClInclude>
+    <ClCompile Include="..\Source\Game\source\DecisionMaking\BehaviourTree\BehaviourTree.cpp"><Filter>Game\DecisionMaking\BehaviourTree</Filter></ClCompile>
+    <ClInclude Include="..\Source\Game\source\Controllers\DecisionMaking\BehaviourTreeController.h"><Filter>Game\Controllers\DecisionMaking</Filter></ClInclude>
+    <ClCompile Include="..\Source\Game\source\Controllers\DecisionMaking\BehaviourTreeController.cpp"><Filter>Game\Controllers\DecisionMaking</Filter></ClCompile>
+  </ItemGroup>
 </Project>

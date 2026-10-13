@@ -332,4 +332,10 @@
     <ClInclude Include="..\Source\Game\source\DecisionMaking\BehaviourTree\BT_ControllerAction.h" />
     <ClCompile Include="..\Source\Game\source\DecisionMaking\BehaviourTree\BT_ControllerAction.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Source\Game\source\DecisionMaking\BehaviourTree\BehaviourTree.h" />
+    <ClCompile Include="..\Source\Game\source\DecisionMaking\BehaviourTree\BehaviourTree.cpp" />
+    <ClInclude Include="..\Source\Game\source\Controllers\DecisionMaking\BehaviourTreeController.h" />
+    <ClCompile Include="..\Source\Game\source\Controllers\DecisionMaking\BehaviourTreeController.cpp" />
+  </ItemGroup>
 </Project>

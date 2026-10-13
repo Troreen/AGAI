@@ -5,7 +5,7 @@ BT_ControllerAction::BT_ControllerAction(Controller& aController)
     : myController(aController)
 {}
 
-BT_NodeResult BT_ControllerAction::Update(Actor& aActor, float aDeltaTime, BehaviourTree&)
+BT_NodeResult BT_ControllerAction::Execute(Actor& aActor, float aDeltaTime, BehaviourTree&)
 {
     myController.Update(aActor, aDeltaTime);
     // These behaviours keep going until the tree chooses another branch.
