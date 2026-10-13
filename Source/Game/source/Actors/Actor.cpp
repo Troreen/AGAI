@@ -71,6 +71,8 @@ void Actor::CalculateSteering(float aDeltaTime, std::span<const Actor* const> aN
             myRespawnTimeRemaining = (std::max)(0.f, myRespawnTimeRemaining - aDeltaTime);
             if (myRespawnTimeRemaining <= 0.f)
             {
+                // Start the next life at rest. Keep the same controllers; they
+                // choose an action again on the next frame after this return.
                 SetPosition(mySpawnPosition);
                 myHealth = myMaxHealth;
             }
@@ -238,7 +240,7 @@ void Actor::Draw() const
     spriteDrawer.Draw(mySharedData, mySpriteInstance);
 }
 
-// Health is enabled only for actors that use damage and healing.
+// --- Give this actor HP, or restore it for a fresh battle ---
 
 void Actor::EnableHealth(float aMaxHealth, float aWoundedThreshold)
 {
@@ -251,13 +253,14 @@ void Actor::EnableHealth(float aMaxHealth, float aWoundedThreshold)
 
 void Actor::TakeDamage(float aDamage)
 {
+    // Ignore later hits while dead so they cannot restart the respawn timer.
     if (myHealthEnabled && IsAlive())
     {
         myHealth = (std::max)(0.f, myHealth - aDamage);
         if (!IsAlive())
         {
             Stop();
-            myRespawnTimeRemaining = myRespawnDelay;
+            myRespawnTimeRemaining = myRespawnDelaySeconds;
         }
     }
 }
@@ -277,6 +280,8 @@ float Actor::GetWoundedThreshold() const { return myWoundedThreshold; }
 
 bool Actor::IsWounded() const
 {
+    // At exactly the threshold, healing is no longer required. Both AI
+    // implementations ask this same question so their health rules agree.
     if (!myHealthEnabled)
     {
         return false;
@@ -292,14 +297,16 @@ bool Actor::IsWounded() const
 
 bool Actor::IsAlive() const
 {
+    // Actors in worlds without health still move normally.
     return !myHealthEnabled || myHealth > 0.f;
 }
 
-void Actor::EnableRespawn(const CommonUtilities::Vector2f& aSpawnPosition, float aDelay)
+void Actor::EnableRespawn(const CommonUtilities::Vector2f& aSpawnPosition, float aDelaySeconds)
 {
+    // Store the spawn once; CalculateSteering handles the countdown while dead.
     myRespawnEnabled = true;
     mySpawnPosition = aSpawnPosition;
-    myRespawnDelay = aDelay;
+    myRespawnDelaySeconds = aDelaySeconds;
 }
 
 float Actor::GetRespawnTimeRemaining() const { return myRespawnTimeRemaining; }

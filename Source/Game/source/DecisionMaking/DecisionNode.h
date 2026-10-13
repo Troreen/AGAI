@@ -2,7 +2,8 @@
 
 #include "DecisionTreeNode.h"
 
-// A question chooses between two branches. The nodes are owned by the caller.
+// A question chooses between two branches. True and false children can be
+// another question or an action leaf. The world owns all these linked nodes.
 class DecisionNode : public DecisionTreeNode
 {
 public:

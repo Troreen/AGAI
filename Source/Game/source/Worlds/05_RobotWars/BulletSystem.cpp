@@ -35,6 +35,7 @@ void BulletSystem::Update(float aDeltaTime, const RectTraversalBounds& aArenaBou
     {
         if (!bullet.target->IsAlive())
         {
+            // There is no living target left for this shot. Mark it for removal.
             bullet.remainingLifetime = 0.f;
             continue;
         }
@@ -75,11 +76,16 @@ bool BulletSystem::HitsTarget(const Bullet& aBullet, const CommonUtilities::Vect
     if (segmentLengthSquared > 0.0001f)
     {
         const CommonUtilities::Vector2f toTarget = aBullet.target->GetPosition() - aPreviousPosition;
+        // Project the target's centre onto the bullet's movement. The fraction
+        // is 0 at the old position and 1 at the new position. Clamp keeps the
+        // closest spot between them, instead of on the line beyond this frame.
         closestPointFraction = std::clamp(toTarget.Dot(travelledSegment) / segmentLengthSquared, 0.f, 1.f);
     }
 
     const CommonUtilities::Vector2f closestPoint = aPreviousPosition + travelledSegment * closestPointFraction;
     const float hitRadius = aBullet.target->GetRadius() + aBullet.radius;
+    // Both objects have a radius. Adding them tests whether their circles touch
+    // at the nearest spot along the shot, even if the bullet passed right through.
     return closestPoint.DistanceSqr(aBullet.target->GetPosition()) <= hitRadius * hitRadius;
 }
 

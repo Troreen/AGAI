@@ -209,3 +209,27 @@ clearance for both robots. The existing combat and automatic-healing regressions
 passed again. The real scene also ran 180 update/render frames with bullet
 sprites. Test files remain under ignored Temp, as in the previous milestones.
 Interactive run reviewed and approved before committing milestones 7-9.
+
+## Final U05 requirement review
+
+Milestones 7-9 were committed as `e538539` after the interactive review. This
+review checks the finished implementation against `Doc/U05_Robot_Wars.pdf`.
+It uses the build and runtime results above; no new gameplay changes were needed.
+
+| Requirement | Implementation and verification |
+| --- | --- |
+| Two robots with different AI structures | Robot 1 uses DecisionTreeController; robot 2 uses StateMachineController. Both are enabled at startup and were reviewed in the running scene. |
+| At least two decision nodes | WoundedDecision leads to Heal or EnemyDetectedDecision; that second question leads to Combat or Wander. The combat regression covers both questions. |
+| At least three states, selected without a Decision Tree | Wander, Heal, and Combat have explicit outgoing conditions in StateMachineController. The state tests cover all six transitions. |
+| Death handled in Actor | Actor stops dead robots and owns the three-second respawn timer, full-health restoration, and spawn position. Lifecycle tests cover death, repeated damage, and respawn at 60/30/10 FPS. |
+| Wall avoidance and smooth movement | Both robots use the same existing steering and wall avoidance. The 120-second battle tests checked wall clearance at 60/30/10 FPS; the running game was reviewed. |
+| Visible HP, wounded seeking, gradual pool healing | Labels display HP. Both robots seek the pool below 40 HP and heal at 10 HP/s without exceeding 100 HP. Healing and battle tests passed. |
+| Wander without vision; chase and shoot with vision | Both AIs use a living-enemy distance check and share CombatController. Transition, detection, movement, and projectile tests passed. |
+| Damage exceeds healing | Shots deal 45 damage every 0.5 seconds while Combat is active, compared with 10 HP/s healing. Long battles confirmed that both robots can die and respawn, including after seeking the shared pool. |
+| Warning level 4 and warnings treated as errors | Debug and Release x64 GameMain builds passed with both settings enabled. |
+| Join any gameplay threads on shutdown | Robot Wars creates no gameplay threads. |
+
+The gameplay review is complete. Submission packaging is still a separate step:
+prepare Exe and Source folders, include the Release executable and runtime assets,
+and exclude build intermediates and local workspace files. No submission package
+has been created or uploaded as part of this review.

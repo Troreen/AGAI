@@ -4,50 +4,57 @@
 #include "../Steering/ArriveController.h"
 #include "../../Actors/Actor.h"
 
-StateMachineController::StateMachineController(WanderController& aWander, ArriveController& aHeal, CombatController& aCombat)
-    : myWander(aWander), myHeal(aHeal), myCombat(aCombat)
+StateMachineController::StateMachineController(WanderController& aWanderController, ArriveController& aHealingController, CombatController& aCombatController)
+    : myWanderController(aWanderController), myHealingController(aHealingController), myCombatController(aCombatController)
 {}
 
 void StateMachineController::Update(Actor& aActor, float aDeltaTime)
 {
     // Each state checks its own exits. Wounded always takes priority over combat.
-    switch (myState)
+    switch (myCurrentState)
     {
     case RobotState::Wander:
         if (aActor.IsWounded())
-            myState = RobotState::Heal;
-        else if (myCombat.HasDetectedEnemy(aActor))
-            myState = RobotState::Combat;
+            myCurrentState = RobotState::Heal;
+        else if (myCombatController.HasDetectedEnemy(aActor))
+            myCurrentState = RobotState::Combat;
         break;
     case RobotState::Heal:
+        // Keep seeking the pool until HP reaches the wounded threshold.
+        // Then return straight to combat if the enemy is still visible.
         if (!aActor.IsWounded())
-            myState = myCombat.HasDetectedEnemy(aActor) ? RobotState::Combat : RobotState::Wander;
+            myCurrentState = myCombatController.HasDetectedEnemy(aActor) ? RobotState::Combat : RobotState::Wander;
         break;
     case RobotState::Combat:
         if (aActor.IsWounded())
-            myState = RobotState::Heal;
-        else if (!myCombat.HasDetectedEnemy(aActor))
-            myState = RobotState::Wander;
+            myCurrentState = RobotState::Heal;
+        else if (!myCombatController.HasDetectedEnemy(aActor))
+            myCurrentState = RobotState::Wander;
         break;
     }
-    GetStateController().Update(aActor, aDeltaTime);
+    // Run the new state in this same frame. Do not run the old combat action
+    // after choosing Heal, or the wounded robot could fire one extra shot.
+    GetCurrentStateController().Update(aActor, aDeltaTime);
 }
 
 CommonUtilities::Vector2f StateMachineController::GetDesiredVelocity(const Actor& aActor) const
 {
-    return GetStateController().GetDesiredVelocity(aActor);
+    // Choosing a state does not move the robot directly. Its action asks for
+    // a velocity, and Actor combines that steering with wall avoidance.
+    return GetCurrentStateController().GetDesiredVelocity(aActor);
 }
 
-Controller& StateMachineController::GetStateController() const
+Controller& StateMachineController::GetCurrentStateController() const
 {
-    switch (myState)
+    // Map each state to its existing movement/action controller.
+    switch (myCurrentState)
     {
-    case RobotState::Heal: return myHeal;
-    case RobotState::Combat: return myCombat;
-    case RobotState::Wander: return myWander;
+    case RobotState::Heal: return myHealingController;
+    case RobotState::Combat: return myCombatController;
+    case RobotState::Wander: return myWanderController;
     }
-    return myWander;
+    return myWanderController;
 }
 
-RobotState StateMachineController::GetState() const { return myState; }
-void StateMachineController::Reset() { myState = RobotState::Wander; }
+RobotState StateMachineController::GetState() const { return myCurrentState; }
+void StateMachineController::Reset() { myCurrentState = RobotState::Wander; }

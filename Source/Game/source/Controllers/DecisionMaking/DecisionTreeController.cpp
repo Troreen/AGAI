@@ -8,7 +8,8 @@ DecisionTreeController::DecisionTreeController(DecisionTree& aDecisionTree)
 
 void DecisionTreeController::Update(Actor& aActor, float aDeltaTime)
 {
-    // Reconsider the tree every frame, then update only the chosen movement.
+    // Start at the root every frame. Questions lead to one action leaf, and
+    // only that action runs: choosing Heal must not also update Combat.
     mySelectedAction = myDecisionTree.MakeDecision(aActor);
     mySelectedAction->Update(aActor, aDeltaTime);
 }

@@ -1,10 +1,11 @@
 #pragma once
 
-// Both AI implementations will use these same combat values.
+// Both robots use these values. Distances and speeds are in screen pixels;
+// intervals and lifetimes are in seconds, and damage is measured in HP.
 struct CombatSettings
 {
     float detectionRadius = 480.f;
-    float stoppingDistance = 120.f;
+    float stoppingDistance = 120.f; // Desired gap between the robots while chasing.
     // Begin braking early enough to keep inertia from carrying us into the enemy.
     float chaseSlowingDistance = 240.f;
     float fireInterval = 0.5f;

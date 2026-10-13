@@ -4,6 +4,7 @@
 
 class CombatController;
 
+// On the tree's healthy branch, visible enemy means Combat; no enemy means Wander.
 class EnemyDetectedDecision final : public DecisionNode
 {
 public:

@@ -23,6 +23,7 @@ bool CombatController::HasDetectedEnemy(const Actor& aActor) const
     }
 
     const float detectionRadiusSquared = mySettings.detectionRadius * mySettings.detectionRadius;
+    // Squared distances give the same range check without taking a square root.
     return aActor.GetPosition().DistanceSqr(myEnemy->GetPosition()) <= detectionRadiusSquared;
 }
 
@@ -39,6 +40,8 @@ void CombatController::ResetCooldown()
 
 void CombatController::Update(Actor& aActor, float /*aDeltaTime*/)
 {
+    // The AI calls this only when Combat is selected. Aim at the enemy's
+    // current position, then wait one firing interval before the next shot.
     if (HasDetectedEnemy(aActor) && myTimeUntilNextShot <= 0.f)
     {
         myBulletSystem.Fire(aActor, *myEnemy, mySettings);
@@ -58,6 +61,7 @@ CommonUtilities::Vector2f CombatController::GetDesiredVelocity(const Actor& aAct
     const CommonUtilities::Vector2f toEnemy = myEnemy->GetPosition() - aActor.GetPosition();
     if (toEnemy.LengthSqr() <= mySettings.stoppingDistance * mySettings.stoppingDistance)
     {
+        // Asking for zero velocity makes steering brake, rather than snapping to a stop.
         return {};
     }
 

@@ -21,6 +21,8 @@
 #include <memory>
 #include <vector>
 
+// Own the arena and the two robots. Each AI chooses an action; Actor moves it,
+// then this world checks bullet hits and healing for the finished frame.
 class GameWorld05_RobotWars final : public GameWorld
 {
 public:
@@ -31,11 +33,11 @@ public:
 private:
     void CreateRobots();
     void CreateHealthPool();
-    void ResetCombatTest();
+    void ResetBattle();
     CommonUtilities::Vector2f GetRobotSpawnPosition(std::size_t aRobotIndex) const;
     void DrawBullets();
-    void ConfigureDecisionTree();
-    void UpdateTestInput();
+    void ConfigureRobotMovement();
+    void UpdateBattleInput();
     void UpdateHealthPool(float aDeltaTime);
     void DrawHealthPool();
     void DrawLabels();
@@ -46,19 +48,23 @@ private:
     HealthPool myHealthPool;
     CombatSettings myCombatSettings;
     BulletSystem myBulletSystem;
-    // Keep controllers and nodes alive for as long as the actor borrows the tree.
+    // Robot 1's tree: wounded -> Heal, otherwise enemy detected -> Combat or Wander.
+    // These nodes borrow their children and controllers rather than owning them.
     WanderController myDecisionTreeWanderController;
-    ArriveController myDecisionTreeArriveController;
-    CombatController myCombatController{myBulletSystem, myCombatSettings};
-    ActionNode myCombatAction{myCombatController};
-    ActionNode myWanderAction{myDecisionTreeWanderController};
-    ActionNode myHealingAction{myDecisionTreeArriveController};
-    EnemyDetectedDecision myEnemyDetectedDecision{myCombatController, myCombatAction, myWanderAction};
-    WoundedDecision myWoundedDecision{myHealingAction, myEnemyDetectedDecision};
-    DecisionTree myRobotDecisionTree{myWoundedDecision};
+    ArriveController myDecisionTreeHealingController;
+    CombatController myDecisionTreeCombatController{myBulletSystem, myCombatSettings};
+    ActionNode myDecisionTreeCombatAction{myDecisionTreeCombatController};
+    ActionNode myDecisionTreeWanderAction{myDecisionTreeWanderController};
+    ActionNode myDecisionTreeHealingAction{myDecisionTreeHealingController};
+    EnemyDetectedDecision myDecisionTreeEnemyDetectedDecision{myDecisionTreeCombatController, myDecisionTreeCombatAction, myDecisionTreeWanderAction};
+    WoundedDecision myDecisionTreeWoundedDecision{myDecisionTreeHealingAction, myDecisionTreeEnemyDetectedDecision};
+    DecisionTree myDecisionTree{myDecisionTreeWoundedDecision};
+    // Robot 2 uses the same actions, but needs its own wander state and shot timer.
     WanderController myStateMachineWanderController;
-    ArriveController myStateMachineArriveController;
+    ArriveController myStateMachineHealingController;
     CombatController myStateMachineCombatController{myBulletSystem, myCombatSettings};
+    // Members are destroyed from bottom to top. Destroy actors before the
+    // controllers and tree nodes they borrow.
     ActorManager myActorManager;
     std::shared_ptr<RectTraversalBounds> myArenaBounds;
     std::array<Tga::Text, 2> myRobotLabels;

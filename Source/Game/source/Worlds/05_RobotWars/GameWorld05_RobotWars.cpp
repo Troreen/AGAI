@@ -13,15 +13,17 @@
 
 void GameWorld05_RobotWars::Init(const CommonUtilities::InputHandler& aInput)
 {
+    // Use the actual window size so the walls, pool, and spawn positions agree.
     myInput = &aInput;
     const Tga::Vector2ui renderSize = Tga::Application::GetInstance()->GetRenderSize();
     const CommonUtilities::Vector2f resolution = {static_cast<float>(renderSize.x), static_cast<float>(renderSize.y)};
     myArenaBounds = std::make_shared<RectTraversalBounds>(resolution * 0.05f, resolution * 0.95f);
 
     CreateHealthPool();
-    ConfigureDecisionTree();
+    ConfigureRobotMovement();
     CreateRobots();
-    myCombatController.SetEnemy(myActorManager.GetActor(1));
+    // Both actors must exist before either combat controller can borrow its enemy.
+    myDecisionTreeCombatController.SetEnemy(myActorManager.GetActor(1));
     myStateMachineCombatController.SetEnemy(myActorManager.GetActor(0));
     myBulletSpriteData.texture = Tga::GraphicsEngine::GetInstance()->GetTextureManager().GetTexture("Sprites/ninjaStar.png");
     myRobotLabels[0].SetText("Decision Tree");
@@ -32,33 +34,37 @@ void GameWorld05_RobotWars::Init(const CommonUtilities::InputHandler& aInput)
 
 void GameWorld05_RobotWars::CreateRobots()
 {
+    // Give both robots the same movement and health settings. Only their way
+    // of choosing actions differs: robot 1 has a tree, robot 2 has states.
     const char* spritePaths[2] = {"Sprites/robot1.png", "Sprites/robot2.png"};
-    for (std::size_t index = 0; index < myRobotLabels.size(); ++index)
+    for (std::size_t robotIndex = 0; robotIndex < myRobotLabels.size(); ++robotIndex)
     {
-        Actor& robot = myActorManager.CreateActor(GetRobotSpawnPosition(index), spritePaths[index], nullptr);
+        Actor& robot = myActorManager.CreateActor(GetRobotSpawnPosition(robotIndex), spritePaths[robotIndex], nullptr);
         robot.SetMaxSpeed(180.f);
         robot.SetMaxForce(1200.f);
         robot.SetMass(1.f);
         robot.SetRadius(25.f);
         robot.EnableHealth(100.f, 40.f);
-        robot.EnableRespawn(GetRobotSpawnPosition(index), 3.f);
-        if (index == 0)
+        robot.EnableRespawn(GetRobotSpawnPosition(robotIndex), 3.f);
+        if (robotIndex == 0)
         {
-            robot.SetController(std::make_unique<DecisionTreeController>(myRobotDecisionTree));
+            robot.SetController(std::make_unique<DecisionTreeController>(myDecisionTree));
         }
         else
         {
             robot.SetController(std::make_unique<StateMachineController>(
-                myStateMachineWanderController, myStateMachineArriveController, myStateMachineCombatController));
+                myStateMachineWanderController, myStateMachineHealingController, myStateMachineCombatController));
         }
+        // Wall avoidance adds steering alongside whichever action the AI chose.
         robot.AddController(std::make_unique<ObstacleAvoidanceController>(myWallAvoidanceSettings, myWallObstacles, myArenaBounds));
     }
 }
 
 void GameWorld05_RobotWars::Update(float aTimeDelta)
 {
-    UpdateTestInput();
-    myCombatController.UpdateCooldown(aTimeDelta);
+    UpdateBattleInput();
+    // Shot timers keep counting down while a robot heals, wanders, or is dead.
+    myDecisionTreeCombatController.UpdateCooldown(aTimeDelta);
     myStateMachineCombatController.UpdateCooldown(aTimeDelta);
     myActorManager.Update(aTimeDelta);
     // Resolve bullet damage before healing, so a fatal hit cannot be undone.
@@ -68,6 +74,7 @@ void GameWorld05_RobotWars::Update(float aTimeDelta)
 
 void GameWorld05_RobotWars::Render()
 {
+    // Draw the pool underneath the robots, then bullets and readable labels on top.
     DrawHealthPool();
     myActorManager.Draw();
     DrawBullets();
@@ -78,44 +85,44 @@ void GameWorld05_RobotWars::Render()
 void GameWorld05_RobotWars::DrawLabels()
 {
     const char* robotNames[2] = {"Decision Tree", "State Machine"};
-    for (std::size_t index = 0; index < myRobotLabels.size(); ++index)
+    for (std::size_t robotIndex = 0; robotIndex < myRobotLabels.size(); ++robotIndex)
     {
-        const Actor& robot = myActorManager.GetActor(index);
-        Tga::Text& label = myRobotLabels[index];
+        const Actor& robot = myActorManager.GetActor(robotIndex);
+        Tga::Text& label = myRobotLabels[robotIndex];
         const char* woundedStatus = robot.IsAlive() && robot.IsWounded() ? " (wounded)" : "";
-        const char* selectedActionName = "";
+        const char* selectedBehaviourText = "";
         if (!robot.IsAlive())
         {
-            selectedActionName = " | Defeated";
+            selectedBehaviourText = " | Defeated";
         }
-        else if (index == 0)
+        else if (robotIndex == 0)
         {
             // Show the action actually used in this frame. Pool healing happens
             // after movement, so HP may already have crossed the threshold.
             const DecisionTreeController& treeController = static_cast<const DecisionTreeController&>(*robot.GetController());
-            if (treeController.GetSelectedAction() == &myHealingAction)
-                selectedActionName = " | Heal";
-            else if (treeController.GetSelectedAction() == &myCombatAction)
-                selectedActionName = " | Combat";
+            if (treeController.GetSelectedAction() == &myDecisionTreeHealingAction)
+                selectedBehaviourText = " | Heal";
+            else if (treeController.GetSelectedAction() == &myDecisionTreeCombatAction)
+                selectedBehaviourText = " | Combat";
             else
-                selectedActionName = " | Wander";
+                selectedBehaviourText = " | Wander";
         }
         else
         {
-            const StateMachineController& controller = static_cast<const StateMachineController&>(*robot.GetController());
-            switch (controller.GetState())
+            const StateMachineController& stateMachineController = static_cast<const StateMachineController&>(*robot.GetController());
+            switch (stateMachineController.GetState())
             {
-            case RobotState::Heal: selectedActionName = " | Heal"; break;
-            case RobotState::Combat: selectedActionName = " | Combat"; break;
-            case RobotState::Wander: selectedActionName = " | Wander"; break;
+            case RobotState::Heal: selectedBehaviourText = " | Heal"; break;
+            case RobotState::Combat: selectedBehaviourText = " | Combat"; break;
+            case RobotState::Wander: selectedBehaviourText = " | Wander"; break;
             }
         }
         char labelText[128] = {};
         std::snprintf(labelText, sizeof(labelText), "%s | HP %.0f/%.0f%s%s",
-            robotNames[index], robot.GetHealth(), robot.GetMaxHealth(), woundedStatus, selectedActionName);
+            robotNames[robotIndex], robot.GetHealth(), robot.GetMaxHealth(), woundedStatus, selectedBehaviourText);
         if (!robot.IsAlive())
             std::snprintf(labelText, sizeof(labelText), "%s | HP 0/%.0f | Respawn %.1fs",
-                robotNames[index], robot.GetMaxHealth(), robot.GetRespawnTimeRemaining());
+                robotNames[robotIndex], robot.GetMaxHealth(), robot.GetRespawnTimeRemaining());
         label.SetText(labelText);
         label.SetPosition((robot.GetPosition() + CommonUtilities::Vector2f(-label.GetWidth() * 0.5f, 45.f)).ToTga());
         label.Render();
@@ -148,30 +155,34 @@ void GameWorld05_RobotWars::CreateHealthPool()
     myHealthPoolLabel.SetPosition((myHealthPool.position + CommonUtilities::Vector2f(-45.f, -myHealthPool.radius - 20.f)).ToTga());
 }
 
-void GameWorld05_RobotWars::ConfigureDecisionTree()
+void GameWorld05_RobotWars::ConfigureRobotMovement()
 {
+    // Different seeds let the robots wander independently without changing speed.
     WanderControllerData wanderData;
     wanderData.randomSeed = 1u;
     myDecisionTreeWanderController.SetWanderControllerData(wanderData);
     wanderData.randomSeed = 2u;
     myStateMachineWanderController.SetWanderControllerData(wanderData);
 
-    // The healing leaf reuses Arrive with one fixed target at the pool.
+    // Both healing actions use Arrive with the pool as a fixed target. Wandering
+    // chooses new directions, but healing must keep aiming at the same place.
     ArriveControllerData arriveData;
     arriveData.useRandomTargets = false;
     arriveData.slowingRadius = myHealthPool.radius;
-    myDecisionTreeArriveController.SetArriveControllerData(arriveData);
-    myDecisionTreeArriveController.SetTargetPosition(myHealthPool.position);
-    myStateMachineArriveController.SetArriveControllerData(arriveData);
-    myStateMachineArriveController.SetTargetPosition(myHealthPool.position);
+    myDecisionTreeHealingController.SetArriveControllerData(arriveData);
+    myDecisionTreeHealingController.SetTargetPosition(myHealthPool.position);
+    myStateMachineHealingController.SetArriveControllerData(arriveData);
+    myStateMachineHealingController.SetTargetPosition(myHealthPool.position);
 }
 
 void GameWorld05_RobotWars::UpdateHealthPool(float aDeltaTime)
 {
+    // Healing belongs to the pool, not to an AI action. Any living robot inside
+    // this radius recovers HP, even if it is currently wandering or fighting.
     const float healingRadiusSquared = myHealthPool.radius * myHealthPool.radius;
-    for (std::size_t index = 0; index < myActorManager.GetActorCount(); ++index)
+    for (std::size_t robotIndex = 0; robotIndex < myActorManager.GetActorCount(); ++robotIndex)
     {
-        Actor& robot = myActorManager.GetActor(index);
+        Actor& robot = myActorManager.GetActor(robotIndex);
         if (robot.GetPosition().DistanceSqr(myHealthPool.position) <= healingRadiusSquared)
         {
             robot.Heal(myHealthPool.healingPerSecond * aDeltaTime);
@@ -187,10 +198,11 @@ void GameWorld05_RobotWars::DrawHealthPool()
     myControlsLabel.Render();
 }
 
-void GameWorld05_RobotWars::UpdateTestInput()
+void GameWorld05_RobotWars::UpdateBattleInput()
 {
+    // Pressed checks apply damage once per press, rather than every held frame.
     if (myInput->IsKeyPressed(Keys::R))
-        ResetCombatTest();
+        ResetBattle();
     if (myInput->IsKeyPressed(Keys::SPACE))
         myActorManager.GetActor(0).TakeDamage(25.f);
     if (myInput->IsKeyPressed(Keys::RETURN))
@@ -199,18 +211,18 @@ void GameWorld05_RobotWars::UpdateTestInput()
 
 CommonUtilities::Vector2f GameWorld05_RobotWars::GetRobotSpawnPosition(std::size_t aRobotIndex) const
 {
-    // Start within detection range so the combat test is visible immediately.
+    // Start within detection range so the battle begins without waiting for wandering.
     const CommonUtilities::Vector2f arenaSize = myArenaBounds->GetMax() - myArenaBounds->GetMin();
     const float horizontalFraction = aRobotIndex == 0 ? 0.25f : 0.55f;
     const CommonUtilities::Vector2f spawnOffset = {arenaSize.x * horizontalFraction, arenaSize.y * 0.5f};
     return myArenaBounds->GetMin() + spawnOffset;
 }
 
-void GameWorld05_RobotWars::ResetCombatTest()
+void GameWorld05_RobotWars::ResetBattle()
 {
-    // Clear flying shots before restoring their targets for another test.
+    // Clear flying shots first so the fresh battle cannot inherit old damage.
     myBulletSystem.Clear();
-    myCombatController.ResetCooldown();
+    myDecisionTreeCombatController.ResetCooldown();
     myStateMachineCombatController.ResetCooldown();
     static_cast<StateMachineController&>(*myActorManager.GetActor(1).GetController()).Reset();
     for (std::size_t robotIndex = 0; robotIndex < myActorManager.GetActorCount(); ++robotIndex)
@@ -224,6 +236,7 @@ void GameWorld05_RobotWars::ResetCombatTest()
 
 void GameWorld05_RobotWars::DrawBullets()
 {
+    // BulletSystem owns the gameplay positions; these sprites only display them.
     Tga::SpriteDrawer& drawer = Tga::GraphicsEngine::GetInstance()->GetSpriteDrawer();
     for (const Bullet& bullet : myBulletSystem.GetBullets())
     {

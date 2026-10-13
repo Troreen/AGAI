@@ -44,6 +44,7 @@ public:
     void SetPosition(const CommonUtilities::Vector2f& aPosition);
     void Stop();
 
+    // Other worlds can leave health disabled. Enabling it also restores full HP.
     void EnableHealth(float aMaxHealth, float aWoundedThreshold);
     void TakeDamage(float aDamage);
     void Heal(float aAmount);
@@ -52,7 +53,8 @@ public:
     float GetWoundedThreshold() const;
     bool IsWounded() const;
     bool IsAlive() const;
-    void EnableRespawn(const CommonUtilities::Vector2f& aSpawnPosition, float aDelay);
+    // Remember where to return after death. Only Robot Wars enables respawning.
+    void EnableRespawn(const CommonUtilities::Vector2f& aSpawnPosition, float aDelaySeconds);
     float GetRespawnTimeRemaining() const;
 
     Tga::Sprite2DInstanceData GetSpriteInstanceData() const;
@@ -85,12 +87,13 @@ private:
     // Actor size used when avoiding obstacles and staying inside bounds.
     float myRadius = 25.f;
 
+    // --- Optional health and respawn values ---
     bool myHealthEnabled = false;
     float myHealth = 100.f;
     float myMaxHealth = 100.f;
     float myWoundedThreshold = 40.f;
     bool myRespawnEnabled = false;
     CommonUtilities::Vector2f mySpawnPosition;
-    float myRespawnDelay = 3.f;
+    float myRespawnDelaySeconds = 3.f;
     float myRespawnTimeRemaining = 0.f;
 };

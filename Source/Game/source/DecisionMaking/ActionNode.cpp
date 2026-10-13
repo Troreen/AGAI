@@ -1,8 +1,8 @@
 #include "ActionNode.h"
 #include "../Controllers/Controller.h"
 
-ActionNode::ActionNode(Controller& aMovementController)
-    : myMovementController(aMovementController)
+ActionNode::ActionNode(Controller& aActionController)
+    : myActionController(aActionController)
 {}
 
 ActionNode* ActionNode::MakeDecision(const Actor& /*aActor*/)
@@ -13,10 +13,11 @@ ActionNode* ActionNode::MakeDecision(const Actor& /*aActor*/)
 
 void ActionNode::Update(Actor& aActor, float aDeltaTime)
 {
-    myMovementController.Update(aActor, aDeltaTime);
+    // Let the selected controller do its work. Actor will ask for its steering next.
+    myActionController.Update(aActor, aDeltaTime);
 }
 
 CommonUtilities::Vector2f ActionNode::GetDesiredVelocity(const Actor& aActor) const
 {
-    return myMovementController.GetDesiredVelocity(aActor);
+    return myActionController.GetDesiredVelocity(aActor);
 }
