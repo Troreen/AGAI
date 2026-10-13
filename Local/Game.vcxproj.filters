@@ -29,6 +29,7 @@
     <Filter Include="Game\Worlds\02_Boids"><UniqueIdentifier>{d9657e0b-a886-51c3-90f1-5cda7276eca6}</UniqueIdentifier></Filter>
     <Filter Include="Game\Worlds\03_WorldInterface"><UniqueIdentifier>{2377b630-bb0a-5209-a3db-92b2e10c46f4}</UniqueIdentifier></Filter>
     <Filter Include="Game\Worlds\04_NavMesh"><UniqueIdentifier>{dd0da3f1-876c-584d-91d9-0c3371847501}</UniqueIdentifier></Filter>
+    <Filter Include="Game\Worlds\05_RobotWars"><UniqueIdentifier>{1f63507b-efb9-42f6-861a-d2e7f3329097}</UniqueIdentifier></Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Source\Game\source\Navigation\NavMesh.cpp"><Filter>Game\Navigation</Filter></ClCompile>
@@ -57,6 +58,7 @@
     <ClCompile Include="..\Source\Game\source\Worlds\02_Boids\GameWorld02_Boids.cpp"><Filter>Game\Worlds\02_Boids</Filter></ClCompile>
     <ClCompile Include="..\Source\Game\source\Worlds\03_WorldInterface\GameWorld03_WorldInterface.cpp"><Filter>Game\Worlds\03_WorldInterface</Filter></ClCompile>
     <ClCompile Include="..\Source\Game\source\Worlds\04_NavMesh\GameWorld04_NavMesh.cpp"><Filter>Game\Worlds\04_NavMesh</Filter></ClCompile>
+    <ClCompile Include="..\Source\Game\source\Worlds\05_RobotWars\GameWorld05_RobotWars.cpp"><Filter>Game\Worlds\05_RobotWars</Filter></ClCompile>
     <ClCompile Include="..\Source\Game\source\Worlds\01_Controllers\SteeringDebugRenderer.cpp"><Filter>Game\Worlds\01_Controllers</Filter></ClCompile>
     <ClInclude Include="..\Source\Game\source\Navigation\NavMesh.h"><Filter>Game\Navigation</Filter></ClInclude>
     <ClInclude Include="..\Source\Game\source\Navigation\NavMesh_LoadFbx.h"><Filter>Game\Navigation</Filter></ClInclude>
@@ -90,6 +92,7 @@
     <ClInclude Include="..\Source\Game\source\Worlds\02_Boids\GameWorld02_Boids.h"><Filter>Game\Worlds\02_Boids</Filter></ClInclude>
     <ClInclude Include="..\Source\Game\source\Worlds\03_WorldInterface\GameWorld03_WorldInterface.h"><Filter>Game\Worlds\03_WorldInterface</Filter></ClInclude>
     <ClInclude Include="..\Source\Game\source\Worlds\04_NavMesh\GameWorld04_NavMesh.h"><Filter>Game\Worlds\04_NavMesh</Filter></ClInclude>
+    <ClInclude Include="..\Source\Game\source\Worlds\05_RobotWars\GameWorld05_RobotWars.h"><Filter>Game\Worlds\05_RobotWars</Filter></ClInclude>
     <ClInclude Include="..\Source\Game\source\Worlds\01_Controllers\SteeringDebugRenderer.h"><Filter>Game\Worlds\01_Controllers</Filter></ClInclude>
     <ClInclude Include="..\CommonUtilities\include\Algorithms\SolveSudoku.hpp"><Filter>CommonUtilities\include\Algorithms</Filter></ClInclude>
     <ClInclude Include="..\CommonUtilities\include\Containers\BSTSet.hpp"><Filter>CommonUtilities\include\Containers</Filter></ClInclude>

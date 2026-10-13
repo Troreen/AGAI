@@ -1,5 +1,5 @@
 // Change this number to run another assignment, then rebuild GameMain.
-#define GAME_WORLD_ASSIGNMENT 4 // 1: Controllers, 2: Boids, 3: World Interface, 4: NavMesh
+#define GAME_WORLD_ASSIGNMENT 5 // 1: Controllers, 2: Boids, 3: World Interface, 4: NavMesh, 5: Robot Wars
 
 #if GAME_WORLD_ASSIGNMENT == 1
 #include "Worlds/01_Controllers/GameWorld01_Controllers.h"
@@ -13,8 +13,11 @@ using SelectedGameWorld = GameWorld03_WorldInterface;
 #elif GAME_WORLD_ASSIGNMENT == 4
 #include "Worlds/04_NavMesh/GameWorld04_NavMesh.h"
 using SelectedGameWorld = GameWorld04_NavMesh;
+#elif GAME_WORLD_ASSIGNMENT == 5
+#include "Worlds/05_RobotWars/GameWorld05_RobotWars.h"
+using SelectedGameWorld = GameWorld05_RobotWars;
 #else
-#error GAME_WORLD_ASSIGNMENT must be 1, 2, 3, or 4.
+#error GAME_WORLD_ASSIGNMENT must be 1, 2, 3, 4, or 5.
 #endif
 
 #include <tge/application.h>

@@ -1,6 +1,6 @@
 # Assignment worlds
 
-Change the number in `#define GAME_WORLD_ASSIGNMENT 4` at the top of
+Change the number in `#define GAME_WORLD_ASSIGNMENT 5` at the top of
 `source/Go.cpp`, rebuild GameMain, and run from `Bin`.
 
 | Number | Class | Controls |
@@ -9,6 +9,7 @@ Change the number in `#define GAME_WORLD_ASSIGNMENT 4` at the top of
 | 2 | GameWorld02_Boids | 100 boids run automatically; tune flocking, avoidance, and debug drawing in Flocking Settings. |
 | 3 | GameWorld03_WorldInterface | Left-click to move. Approach a computer to hack it; inspect the four polling/event guards. |
 | 4 | GameWorld04_NavMesh | Left-click to move the player; the companion plans a path. Inspect navigation in the debug panel. |
+| 5 | GameWorld05_RobotWars | Milestone 1: two stationary robots labelled Decision Tree and State Machine; arena bounds are invisible. |
 
 `source/Worlds/GameWorld.h` is the small shared interface. Each numbered world owns its own
 scene data and implements Init(input), Update(deltaTime), and Render(). Go keeps
