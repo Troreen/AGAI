@@ -324,4 +324,12 @@
     <ClInclude Include="..\Source\Game\source\DecisionMaking\BehaviourTree\BT_Selector.h" />
     <ClCompile Include="..\Source\Game\source\DecisionMaking\BehaviourTree\BT_Selector.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Source\Game\source\DecisionMaking\BehaviourTree\BT_LeafNodeCondition.h" />
+    <ClCompile Include="..\Source\Game\source\DecisionMaking\BehaviourTree\BT_LeafNodeCondition.cpp" />
+    <ClInclude Include="..\Source\Game\source\DecisionMaking\BehaviourTree\BT_LeafNodeAction.h" />
+    <ClCompile Include="..\Source\Game\source\DecisionMaking\BehaviourTree\BT_LeafNodeAction.cpp" />
+    <ClInclude Include="..\Source\Game\source\DecisionMaking\BehaviourTree\BT_ControllerAction.h" />
+    <ClCompile Include="..\Source\Game\source\DecisionMaking\BehaviourTree\BT_ControllerAction.cpp" />
+  </ItemGroup>
 </Project>
