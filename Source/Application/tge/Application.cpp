@@ -127,6 +127,9 @@ bool Application::InternalStart()
 		return false;
 	}
 
+	// Game worlds need the created render target's size, not the requested window size.
+	myWindowConfiguration.renderSize = DX11::GetResolution();
+
 	CalculateRatios();
 #ifndef _RETAIL
 	ImGuiInterface::Init();
