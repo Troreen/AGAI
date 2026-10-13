@@ -7,6 +7,10 @@
 #include "../../Controllers/Steering/ObstacleAvoidance.h"
 #include "HealthPool.h"
 #include "WoundedDecision.h"
+#include "EnemyDetectedDecision.h"
+#include "CombatSettings.h"
+#include "BulletSystem.h"
+#include "../../Controllers/DecisionMaking/CombatController.h"
 #include "../../DecisionMaking/ActionNode.h"
 #include "../../DecisionMaking/DecisionTree.h"
 #include "../../Controllers/Steering/WanderController.h"
@@ -26,6 +30,9 @@ public:
 private:
     void CreateRobots();
     void CreateHealthPool();
+    void ResetCombatTest();
+    CommonUtilities::Vector2f GetRobotSpawnPosition(std::size_t aRobotIndex) const;
+    void DrawBullets();
     void ConfigureDecisionTree();
     void UpdateTestInput();
     void UpdateHealthPool(float aDeltaTime);
@@ -36,18 +43,24 @@ private:
     ObstacleAvoidanceSettings myWallAvoidanceSettings;
     std::vector<CircleObstacle> myWallObstacles;
     HealthPool myHealthPool;
+    CombatSettings myCombatSettings;
+    BulletSystem myBulletSystem;
     // Keep controllers and nodes alive for as long as the actor borrows the tree.
     WanderController myDecisionTreeWanderController;
     ArriveController myDecisionTreeArriveController;
+    CombatController myCombatController{myBulletSystem, myCombatSettings};
+    ActionNode myCombatAction{myCombatController};
     ActionNode myWanderAction{myDecisionTreeWanderController};
     ActionNode myHealingAction{myDecisionTreeArriveController};
-    WoundedDecision myWoundedDecision{myHealingAction, myWanderAction};
+    EnemyDetectedDecision myEnemyDetectedDecision{myCombatController, myCombatAction, myWanderAction};
+    WoundedDecision myWoundedDecision{myHealingAction, myEnemyDetectedDecision};
     DecisionTree myRobotDecisionTree{myWoundedDecision};
     ActorManager myActorManager;
     std::shared_ptr<RectTraversalBounds> myArenaBounds;
     std::array<Tga::Text, 2> myRobotLabels;
     Tga::SpriteSharedData myHealthPoolSpriteData = {};
     Tga::Sprite2DInstanceData myHealthPoolSprite = {};
+    Tga::SpriteSharedData myBulletSpriteData = {};
     Tga::Text myHealthPoolLabel;
     Tga::Text myControlsLabel;
     const CommonUtilities::InputHandler* myInput = nullptr;

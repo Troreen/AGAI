@@ -21,22 +21,20 @@ void GameWorld05_RobotWars::Init(const CommonUtilities::InputHandler& aInput)
     CreateHealthPool();
     ConfigureDecisionTree();
     CreateRobots();
+    myCombatController.SetEnemy(myActorManager.GetActor(1));
+    myBulletSpriteData.texture = Tga::GraphicsEngine::GetInstance()->GetTextureManager().GetTexture("Sprites/ninjaStar.png");
     myRobotLabels[0].SetText("Decision Tree");
-    myRobotLabels[1].SetText("State Machine");
-    myControlsLabel.SetText("Space: damage robot 1 | Enter: damage robot 2 | Robot 1 heals automatically below 40 HP");
+    myRobotLabels[1].SetText("Target (State Machine later)");
+    myControlsLabel.SetText("Space/Enter: damage robot 1/2 | R: reset combat test");
     myControlsLabel.SetPosition({40.f, 24.f});
 }
 
 void GameWorld05_RobotWars::CreateRobots()
 {
-    const CommonUtilities::Vector2f arenaSize = myArenaBounds->GetMax() - myArenaBounds->GetMin();
     const char* spritePaths[2] = {"Sprites/robot1.png", "Sprites/robot2.png"};
     for (std::size_t index = 0; index < myRobotLabels.size(); ++index)
     {
-        const float horizontalFraction = index == 0 ? 0.25f : 0.75f;
-        const CommonUtilities::Vector2f spawnOffset = {arenaSize.x * horizontalFraction, arenaSize.y * 0.5f};
-
-        Actor& robot = myActorManager.CreateActor(myArenaBounds->GetMin() + spawnOffset, spritePaths[index], nullptr);
+        Actor& robot = myActorManager.CreateActor(GetRobotSpawnPosition(index), spritePaths[index], nullptr);
         robot.SetMaxSpeed(180.f);
         robot.SetMaxForce(1200.f);
         robot.SetMass(1.f);
@@ -46,21 +44,21 @@ void GameWorld05_RobotWars::CreateRobots()
         {
             robot.SetController(std::make_unique<DecisionTreeController>(myRobotDecisionTree));
         }
-        else
+        // Robot 2 stays still as a shooting target until its AI is implemented.
+        if (index == 0)
         {
-            WanderControllerData wanderData;
-            wanderData.randomSeed = 2u;
-            robot.SetController(std::make_unique<WanderController>(wanderData));
+            robot.AddController(std::make_unique<ObstacleAvoidanceController>(myWallAvoidanceSettings, myWallObstacles, myArenaBounds));
         }
-        // Wall avoidance contributes alongside either selected movement action.
-        robot.AddController(std::make_unique<ObstacleAvoidanceController>(myWallAvoidanceSettings, myWallObstacles, myArenaBounds));
     }
 }
 
 void GameWorld05_RobotWars::Update(float aTimeDelta)
 {
     UpdateTestInput();
+    myCombatController.UpdateCooldown(aTimeDelta);
     myActorManager.Update(aTimeDelta);
+    // Resolve bullet damage before healing, so a fatal hit cannot be undone.
+    myBulletSystem.Update(aTimeDelta, *myArenaBounds);
     UpdateHealthPool(aTimeDelta);
 }
 
@@ -68,25 +66,35 @@ void GameWorld05_RobotWars::Render()
 {
     DrawHealthPool();
     myActorManager.Draw();
+    DrawBullets();
     DrawLabels();
     DrawWallDebug();
 }
 
 void GameWorld05_RobotWars::DrawLabels()
 {
-    const char* robotNames[2] = {"Decision Tree", "State Machine"};
+    const char* robotNames[2] = {"Decision Tree", "Target (State Machine later)"};
     for (std::size_t index = 0; index < myRobotLabels.size(); ++index)
     {
         const Actor& robot = myActorManager.GetActor(index);
         Tga::Text& label = myRobotLabels[index];
-        const char* woundedStatus = robot.IsWounded() ? " (wounded)" : "";
+        const char* woundedStatus = robot.IsAlive() && robot.IsWounded() ? " (wounded)" : "";
         const char* selectedActionName = "";
-        if (index == 0)
+        if (!robot.IsAlive())
+        {
+            selectedActionName = " | Defeated";
+        }
+        else if (index == 0)
         {
             // Show the action actually used in this frame. Pool healing happens
             // after movement, so HP may already have crossed the threshold.
             const DecisionTreeController& treeController = static_cast<const DecisionTreeController&>(*robot.GetController());
-            selectedActionName = treeController.GetSelectedAction() == &myHealingAction ? " | Heal" : " | Wander";
+            if (treeController.GetSelectedAction() == &myHealingAction)
+                selectedActionName = " | Heal";
+            else if (treeController.GetSelectedAction() == &myCombatAction)
+                selectedActionName = " | Combat";
+            else
+                selectedActionName = " | Wander";
         }
         char labelText[128] = {};
         std::snprintf(labelText, sizeof(labelText), "%s | HP %.0f/%.0f%s%s",
@@ -160,8 +168,46 @@ void GameWorld05_RobotWars::DrawHealthPool()
 
 void GameWorld05_RobotWars::UpdateTestInput()
 {
+    if (myInput->IsKeyPressed(Keys::R))
+        ResetCombatTest();
     if (myInput->IsKeyPressed(Keys::SPACE))
         myActorManager.GetActor(0).TakeDamage(25.f);
     if (myInput->IsKeyPressed(Keys::RETURN))
         myActorManager.GetActor(1).TakeDamage(25.f);
+}
+
+CommonUtilities::Vector2f GameWorld05_RobotWars::GetRobotSpawnPosition(std::size_t aRobotIndex) const
+{
+    // Start within detection range so the combat test is visible immediately.
+    const CommonUtilities::Vector2f arenaSize = myArenaBounds->GetMax() - myArenaBounds->GetMin();
+    const float horizontalFraction = aRobotIndex == 0 ? 0.25f : 0.55f;
+    const CommonUtilities::Vector2f spawnOffset = {arenaSize.x * horizontalFraction, arenaSize.y * 0.5f};
+    return myArenaBounds->GetMin() + spawnOffset;
+}
+
+void GameWorld05_RobotWars::ResetCombatTest()
+{
+    // Clear flying shots before restoring their targets for another test.
+    myBulletSystem.Clear();
+    myCombatController.ResetCooldown();
+    for (std::size_t robotIndex = 0; robotIndex < myActorManager.GetActorCount(); ++robotIndex)
+    {
+        Actor& robot = myActorManager.GetActor(robotIndex);
+        robot.Stop();
+        robot.EnableHealth(100.f, 40.f);
+        robot.SetPosition(GetRobotSpawnPosition(robotIndex));
+    }
+}
+
+void GameWorld05_RobotWars::DrawBullets()
+{
+    Tga::SpriteDrawer& drawer = Tga::GraphicsEngine::GetInstance()->GetSpriteDrawer();
+    for (const Bullet& bullet : myBulletSystem.GetBullets())
+    {
+        Tga::Sprite2DInstanceData bulletSprite;
+        bulletSprite.position = bullet.position.ToTga();
+        bulletSprite.size = {bullet.radius * 2.f, bullet.radius * 2.f};
+        bulletSprite.color = {1.f, 0.9f, 0.2f, 1.f};
+        drawer.Draw(myBulletSpriteData, bulletSprite);
+    }
 }

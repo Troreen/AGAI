@@ -51,6 +51,7 @@ public:
     float GetMaxHealth() const;
     float GetWoundedThreshold() const;
     bool IsWounded() const;
+    bool IsAlive() const;
 
     Tga::Sprite2DInstanceData GetSpriteInstanceData() const;
     Tga::SpriteSharedData GetSpriteSharedData() const;

@@ -62,6 +62,13 @@ void Actor::AddController(std::unique_ptr<Controller> aController)
 
 void Actor::CalculateSteering(float aDeltaTime, std::span<const Actor* const> aNeighbours)
 {
+    // Defeated robots do not run their AI. Respawn will be handled by Actor too.
+    if (!IsAlive())
+    {
+        Stop();
+        return;
+    }
+
     CommonUtilities::Vector2f totalSteering = {};
     for (const auto& controller : myControllers)
     {
@@ -92,6 +99,12 @@ const CommonUtilities::Vector2f& Actor::GetPreviousSteeringForce() const
 // Steering is a push that changes our speed and direction, not a new position.
 void Actor::UpdateMovement(float aDeltaTime)
 {
+    if (!IsAlive())
+    {
+        Stop();
+        return;
+    }
+
     LimitVector(mySteeringForce, myMaxForce);
     myPreviousSteeringForce = mySteeringForce;
 
@@ -231,12 +244,17 @@ void Actor::TakeDamage(float aDamage)
     if (myHealthEnabled)
     {
         myHealth = (std::max)(0.f, myHealth - aDamage);
+        if (!IsAlive())
+        {
+            Stop();
+        }
     }
 }
 
 void Actor::Heal(float aAmount)
 {
-    if (myHealthEnabled)
+    // The pool restores living robots; it must not revive a defeated target.
+    if (myHealthEnabled && IsAlive())
     {
         myHealth = (std::min)(myMaxHealth, myHealth + aAmount);
     }
@@ -259,4 +277,9 @@ bool Actor::IsWounded() const
     }
 
     return false;
+}
+
+bool Actor::IsAlive() const
+{
+    return !myHealthEnabled || myHealth > 0.f;
 }

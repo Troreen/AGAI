@@ -9,7 +9,7 @@ Change the number in `#define GAME_WORLD_ASSIGNMENT 5` at the top of
 | 2 | GameWorld02_Boids | 100 boids run automatically; tune flocking, avoidance, and debug drawing in Flocking Settings. |
 | 3 | GameWorld03_WorldInterface | Left-click to move. Approach a computer to hack it; inspect the four polling/event guards. |
 | 4 | GameWorld04_NavMesh | Left-click to move the player; the companion plans a path. Inspect navigation in the debug panel. |
-| 5 | GameWorld05_RobotWars | Milestone 5: Space/Enter damage robot 1/2. Robot 1 automatically seeks the health pool below 40 HP and resumes Wander at 40 HP or above. Its label shows the selected action. Robot 2 still wanders; combat and the State Machine come later. |
+| 5 | GameWorld05_RobotWars | Milestone 6: robot 1 detects, chases, and shoots a stationary robot 2. Space/Enter damage robot 1/2; R resets the test. Below 40 HP, robot 1 chooses Heal before combat. Defeated robots wait for reset; timed respawn and the State Machine come later. |
 
 `source/Worlds/GameWorld.h` is the small shared interface. Each numbered world owns its own
 scene data and implements Init(input), Update(deltaTime), and Render(). Go keeps
@@ -113,3 +113,44 @@ back to wandering without threshold oscillation, repeated damage, and wall
 avoidance. All checks passed from three start positions (including near a wall
 and inside the pool) at 60/30/10 FPS. Interactive controls and appearance await
 review before committing this milestone.
+
+## Robot Wars milestone 6
+
+The real tree now has two questions: `WoundedDecision` first, then
+`EnemyDetectedDecision` on its normal branch. Their leaves are Heal, Combat,
+and Wander. Enemy detection checks for a living target within 480 units.
+CombatController uses the existing arrive helper to approach a point 120 units
+short of the enemy, braking across 240 units to allow for movement inertia.
+Wall avoidance continues alongside all three movement actions.
+
+The world ticks the combat cooldown every frame, including time spent healing.
+Only the selected Combat action can request a shot. Bullets aim at the target's
+position when fired, then travel straight at 600 units/s. They deal 15 damage,
+with a 0.5-second firing interval, compared with the pool's 10 HP/s healing.
+BulletSystem checks the full travelled segment against the target's radius,
+consumes each hit once, and removes missed shots at the arena edge or after
+two seconds. Flying shots may still hit after the shooter chooses Heal.
+Bullets use the existing ninja-star sprite through SpriteDrawer in every build.
+
+Robot 2 is a stationary target for this milestone. Both robots start within
+detection range. Space damages robot 1, Enter damages robot 2, and R clears
+bullets, restores HP, resets the cooldown, and returns both robots to their
+starting positions. At zero HP, Actor skips AI and movement; the pool cannot
+revive a defeated actor. Death is not a tree question or an action. Timed
+respawn is the next milestone.
+
+Review: watch robot 1 approach and shoot, then use R and Space three times to
+check that healing interrupts combat. At 40 HP it can fight again if it detects
+the target. Once the target reaches zero HP, robot 1 should wander and stop
+requesting shots. R should make the whole test repeatable.
+
+Milestone 6 verification: Debug and Release x64 GameMain built without warnings.
+`Temp/DecisionTreeTests/CombatTests.cpp` passed detection boundaries, both tree
+questions and all three actions, healing priority with no new shots, cooldown,
+chasing without reaching the target's body, swept bullet hits, dodged shots,
+lifetime expiry, consumed hits, dead-target filtering, damage exceeding pool
+healing, and stopped AI/movement at zero HP. Combat movement checks passed at
+60/30/10 FPS. The automatic-healing regression passed again from three start
+positions at those frame rates. `CombatSceneTests.cpp` started the real graphics
+engine and ran 180 Robot Wars update/render frames, including bullet sprites.
+Interactive appearance and reset controls await review before committing.

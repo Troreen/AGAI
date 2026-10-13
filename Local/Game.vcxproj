@@ -299,4 +299,14 @@
     <ClInclude Include="..\Source\Game\source\Worlds\05_RobotWars\WoundedDecision.h" />
     <ClCompile Include="..\Source\Game\source\Worlds\05_RobotWars\WoundedDecision.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Source\Game\source\Worlds\05_RobotWars\CombatSettings.h" />
+    <ClInclude Include="..\Source\Game\source\Worlds\05_RobotWars\Bullet.h" />
+    <ClInclude Include="..\Source\Game\source\Worlds\05_RobotWars\BulletSystem.h" />
+    <ClCompile Include="..\Source\Game\source\Worlds\05_RobotWars\BulletSystem.cpp" />
+    <ClInclude Include="..\Source\Game\source\Controllers\DecisionMaking\CombatController.h" />
+    <ClCompile Include="..\Source\Game\source\Controllers\DecisionMaking\CombatController.cpp" />
+    <ClInclude Include="..\Source\Game\source\Worlds\05_RobotWars\EnemyDetectedDecision.h" />
+    <ClCompile Include="..\Source\Game\source\Worlds\05_RobotWars\EnemyDetectedDecision.cpp" />
+  </ItemGroup>
 </Project>
